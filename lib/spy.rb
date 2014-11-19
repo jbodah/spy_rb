@@ -1,36 +1,91 @@
-require 'rubygems'
 require 'byebug'
 
 module Spy
-  def self.on_instance_method(mod, method, &block)
-    mod.class_eval do
-      # Stash the old method
-      old_method = instance_method(method)
+  Struct = ::Struct.new(:msg, :original, :wrapped)
 
-      # Create a new proc that will call both our block and the old method
-      proc = Proc.new do
-        block.call if block
-        old_method.bind(self).call
+  class Instance
+    attr_reader :msg, :call_count
+
+    def initialize(msg, original)
+      @msg = msg
+      @original = original
+      @call_count = 0
+      @match_args = []
+      wrap_original
+    end
+
+    def destroy
+      unwrap_original
+    end
+
+    def wrap_original
+      msg = @msg
+      original = @original
+      after_call = Proc.new {|result, *args| after_call(result, *args)}
+      original.owner.instance_eval do
+        define_method msg do |*args|
+          result = original.call(*args)
+          after_call.call(result, *args)
+          result
+        end
       end
+    end
 
-      # Bind that proc to the original module
-      define_method(method, proc)
+    def unwrap_original
+      msg = @msg
+      original = @original
+      @original.owner.instance_eval { define_method msg, original }
+    end
+
+    def after_call(result, *args)
+      return unless @match_args.empty? || @match_args == args
+      @call_count += 1
+    end
+
+    def with_args(*args)
+      @match_args = args || []
+      self
     end
   end
 
-  def self.on_class_method(mod, method, &block)
-    mod.class_eval do
-      # Stash the old method
-      old_method = singleton_method(method)
+  module Errors
+    AlreadySpiedError = Class.new(StandardError)
+  end
+ 
+  module ClassMethods
+    include Errors
 
-      # Create a new proc that will call both our block and the old method
-      proc = Proc.new do
-        block.call if block
-        old_method.call
+    def on(receiver, msg)
+      add_spy(receiver, msg)
+    end
+
+    def restore(*args)
+      if args.length == 1
+        spies.each {|k,v| restore(find_object(k), v.msg)} if args[0] == :all
+      elsif args.length == 2
+        object, msg = *args
+        spies[object.object_id].destroy
+        spies.delete(object.object_id)
       end
+    end
 
-      # Bind that proc to the original module
-      define_singleton_method(method, proc)
+    private
+
+    def find_object(object_id)
+      ObjectSpace._id2ref(object_id)
+    end
+
+    def spies
+      @spies ||= {}
+    end
+
+    def add_spy(receiver, msg)
+      raise AlreadySpiedError if spies[receiver.object_id]
+      original = receiver.method(msg)
+      spies[receiver.object_id] = Instance.new(msg, original)
     end
   end
+
+  include Errors
+  extend ClassMethods
 end
