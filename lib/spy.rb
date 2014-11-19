@@ -1,8 +1,6 @@
 require 'byebug'
 
 module Spy
-  Struct = ::Struct.new(:msg, :original, :wrapped)
-
   class Instance
     attr_reader :msg, :call_count
 
