@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'spy'
+  s.name        = 'spy_rb'
   s.version     = '0.1.0'
   s.licenses    = ['MIT']
   s.summary     = "SinonJS-style Test Spies for Ruby"
@@ -7,5 +7,5 @@ Gem::Specification.new do |s|
   s.authors     = ["Josh Bodah"]
   s.email       = 'jb3689@yahoo.com'
   s.files       = ["lib/spy.rb"]
-  s.homepage    = 'https://github.com/jbodah/spy'
+  s.homepage    = 'https://github.com/jbodah/spy_rb'
 end

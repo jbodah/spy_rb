@@ -8,7 +8,9 @@ Spy brings everything that's great about Sinon.JS to Ruby. Mocking frameworks wo
 
 ## Install
 
-TODO: gemify + rubygems
+```
+gem install spy_rb
+```
 
 ## Usage
 
