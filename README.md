@@ -1,6 +1,6 @@
 # Spy
 
-Sinon.JS style Test Spies for Ruby
+Sinon.JS-style Test Spies for Ruby
 
 ## Install
 
