@@ -1,5 +1,8 @@
 # Spy
 
+![Travis Status](https://travis-ci.org/jbodah/spy_rb.svg?branch=master)
+
+
 SinonJS-style Test Spies for Ruby
 
 ## Description
