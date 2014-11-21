@@ -71,7 +71,7 @@ class SpyTest < Minitest::Spec
 
       it 'throws if the method is already being spied' do
         Spy.on(FakeClass, :hello_world)
-        assert_raises Spy::AlreadySpiedError do
+        assert_raises Spy::Errors::AlreadySpiedError do
           Spy.on(FakeClass, :hello_world)
         end
       end
