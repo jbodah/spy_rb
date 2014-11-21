@@ -134,6 +134,10 @@ class SpyTest < Minitest::Spec
         FakeClass.repeat 'hello'
         assert spy.call_count == 2
       end
+
+      it 'should allow tracking of multiple arg sets' do
+        skip
+      end
     end
    
     describe '.call_count' do
