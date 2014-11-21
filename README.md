@@ -1,6 +1,10 @@
-# spy.rb
+# Spy
 
-Sinon.JS-style Test Spies for Ruby
+SinonJS-style Test Spies for Ruby
+
+## Description
+
+Spy brings everything that's great about Sinon.JS to Ruby. Mocking frameworks work by stubbing out functionality. Spy works by listening in on functionality and allowing it to run in the background. Spy is designed to be lightweight and work alongside Mocking frameworks instead of trying to replace them entirely.
 
 ## Install
 
