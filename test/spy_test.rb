@@ -79,6 +79,12 @@ class SpyTest < Minitest::Spec
       it 'returns a Spy instance' do
         assert Spy.on(FakeClass, :hello_world).is_a? Spy::Instance
       end
+
+      it 'allows you to spy on multiple methods on the same object' do
+        skip
+        Spy.on(FakeClass, :hello_world)
+        Spy.on(FakeClass, :repeat)
+      end
     end
 
     describe '.restore' do
@@ -153,5 +159,3 @@ class SpyTest < Minitest::Spec
     end
   end
 end
-
-
