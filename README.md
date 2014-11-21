@@ -1,4 +1,4 @@
-# Spy
+# spy.rb
 
 Sinon.JS-style Test Spies for Ruby
 
