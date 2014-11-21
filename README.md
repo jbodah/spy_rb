@@ -1,7 +1,8 @@
 # Spy
 
-![Travis Status](https://travis-ci.org/jbodah/spy_rb.svg?branch=master)
+[![Travis Status](https://travis-ci.org/jbodah/spy_rb.svg?branch=master)](https://travis-ci.org/jbodah/spy_rb)
 
+[![Coverage Status](https://img.shields.io/coveralls/jbodah/spy_rb.svg)](https://coveralls.io/r/jbodah/spy_rb)
 
 SinonJS-style Test Spies for Ruby
 
