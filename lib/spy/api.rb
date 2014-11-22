@@ -21,12 +21,8 @@ module Spy
       if args.length == 1 && args[0] == :all
         spies.each {|k,v| restore(find_object(k), v.msg)}
       elsif args.length == 2
-        object, msg = *args
-        raise NoMethodError unless object.respond_to? msg
-        spied = spies[object.object_id]
-        raise Errors::MethodNotSpiedError unless spied
-        spied.destroy
-        spies.delete(object.object_id)
+        receiver, msg = *args
+        remove_spy(receiver, msg)
       end
     end
 
@@ -40,6 +36,14 @@ module Spy
     # Global hash of known spies
     def spies
       @spies ||= {}
+    end
+
+    def remove_spy(receiver, msg)
+      raise NoMethodError unless receiver.respond_to? msg
+      spied = spies[receiver.object_id]
+      raise Errors::MethodNotSpiedError unless spied
+      spied.destroy
+      spies.delete(receiver.object_id)
     end
 
     def add_spy(receiver, msg)
