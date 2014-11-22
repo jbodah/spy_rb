@@ -1,4 +1,5 @@
 require_relative 'instance'
+require_relative 'collection'
 require_relative 'errors'
 
 module Spy
@@ -19,7 +20,9 @@ module Spy
     #               Spy.restore(receiver, msg)  => stops spying on the given receiver and message
     def restore(*args)
       if args.length == 1 && args[0] == :all
-        spies.each {|k,v| restore(find_object(k), v.msg)}
+        collection.each do |object_id, msg|
+          restore(find_object(object_id), msg)
+        end
       elsif args.length == 2
         receiver, msg = *args
         remove_spy(receiver, msg)
@@ -33,23 +36,20 @@ module Spy
       ObjectSpace._id2ref(object_id)
     end
 
-    # Global hash of known spies
-    def spies
-      @spies ||= {}
+    # Global hash of known collection
+    def collection
+      @collection ||= Collection.new
+    end
+
+    def add_spy(receiver, msg)
+      raise Errors::AlreadySpiedError if collection.contains?(receiver, msg)
+      original = receiver.method(msg)
+      collection.insert receiver, msg, Instance.new(msg, original)
     end
 
     def remove_spy(receiver, msg)
       raise NoMethodError unless receiver.respond_to? msg
-      spied = spies[receiver.object_id]
-      raise Errors::MethodNotSpiedError unless spied
-      spied.destroy
-      spies.delete(receiver.object_id)
-    end
-
-    def add_spy(receiver, msg)
-      raise Errors::AlreadySpiedError if spies[receiver.object_id]
-      original = receiver.method(msg)
-      spies[receiver.object_id] = Instance.new(msg, original)
+      collection.remove(receiver, msg)
     end
   end
 end
