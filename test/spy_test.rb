@@ -115,7 +115,17 @@ class SpyTest < Minitest::Spec
       end
 
       it 'throws if the method is not being spied' do
-        skip
+        obj = FakeClass.new
+        assert_raises Spy::Errors::MethodNotSpiedError do
+          Spy.restore(obj, :age)
+        end
+      end
+
+      it "throws if the method doesn't exist" do
+        obj = FakeClass.new
+        assert_raises NoMethodError do
+          Spy.restore(obj, :method_that_doesnt_exist)
+        end
       end
     end
 

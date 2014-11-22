@@ -22,7 +22,10 @@ module Spy
         spies.each {|k,v| restore(find_object(k), v.msg)}
       elsif args.length == 2
         object, msg = *args
-        spies[object.object_id].destroy
+        raise NoMethodError unless object.respond_to? msg
+        spied = spies[object.object_id]
+        raise Errors::MethodNotSpiedError unless spied
+        spied.destroy
         spies.delete(object.object_id)
       end
     end

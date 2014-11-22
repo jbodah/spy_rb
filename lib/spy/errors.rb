@@ -1,5 +1,6 @@
 module Spy
   module Errors
-    AlreadySpiedError = Class.new(StandardError)
+    MethodNotSpiedError = Class.new(StandardError)
+    AlreadySpiedError   = Class.new(StandardError)
   end
 end
