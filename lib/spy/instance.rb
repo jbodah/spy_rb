@@ -4,7 +4,7 @@
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    attr_reader :msg, :call_count
+    attr_reader :msg, :original, :call_count
 
     def initialize(msg, original)
       @msg = msg
@@ -19,22 +19,25 @@ module Spy
     end
 
     def wrap_original
-      msg = @msg
-      original = @original
-      after_call = Proc.new {|result, *args| after_call(result, *args)}
-      original.owner.instance_eval do
-        define_method msg do |*args|
-          result = original.call(*args)
-          after_call.call(result, *args)
-          result
+      context = self
+      @original.owner.instance_eval do
+        define_method context.msg do |*args|
+          context.wrapped *args
         end
       end
     end
 
     def unwrap_original
-      msg = @msg
-      original = @original
-      @original.owner.instance_eval { define_method msg, original }
+      context = self
+      @original.owner.instance_eval do
+        define_method context.msg, context.original
+      end
+    end
+
+    def wrapped(*args)
+      result = @original.call(*args)
+      after_call(result, *args)
+      result
     end
 
     def after_call(result, *args)
