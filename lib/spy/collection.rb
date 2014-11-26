@@ -1,3 +1,5 @@
+require_relative 'collection/entry'
+
 module Spy
   class Collection
     include Enumerable
@@ -6,51 +8,39 @@ module Spy
       @store = {}
     end
 
-    def insert(receiver, msg, method_type, value)
-      @store[key_for(receiver, msg, method_type)] = value
+    def insert(entry)
+      raise Errors::AlreadySpiedError if include?(entry)
+      @store[entry.key] = entry
     end
 
-    def remove(receiver, msg, method_type)
-      value = @store[key_for(receiver, msg, method_type)]
-      raise Errors::MethodNotSpiedError unless value
-      @store.delete(key_for(receiver, msg, method_type))
+    def remove(entry)
+      raise Errors::MethodNotSpiedError unless include?(entry)
+      @store.delete(entry.key).value
     end
 
     # Removes each element from the collection and calls the block
     # with each deleted element
     def remove_all
-      map do |receiver, msg, method_type|
-        yield remove(receiver, msg, method_type)
+      map {|e| yield remove(e)}
+    end
+
+    def each
+      @store.keys.each {|k| yield Entry.parse(k)}
+    end
+
+    # Add a slicker interface that abstracts away Collection::Entry
+    module SpyHelper
+      def <<(spy)
+        entry = Collection::Entry.new(spy.receiver, spy.msg, spy.method_type)
+        entry.value = spy
+        insert entry
+      end
+
+      def pop(receiver, msg, method_type)
+        remove Collection::Entry.new(receiver, msg, method_type)
       end
     end
 
-    def contains?(receiver, msg, method_type)
-      !@store[key_for(receiver, msg, method_type)].nil?
-    end
-
-    private
-
-    def each
-      @store.keys
-            .map  {|k| key_parts k}
-            .each {|receiver, msg, method_type| yield receiver, msg, method_type}
-    end
-
-    def key_for(receiver, msg, method_type)
-      "#{receiver.object_id}|#{msg}|#{method_type}"
-    end
-
-    def key_parts(key)
-      parts = key.split('|')
-      parts[0] = find_object(parts[0].to_i)
-      parts[1] = parts[1].to_sym
-      parts[2] = parts[2].to_sym
-      parts
-    end
-
-    # Looks up an object in the global ObjectSpace
-    def find_object(object_id)
-      ObjectSpace._id2ref(object_id)
-    end
+    include SpyHelper
   end
 end
