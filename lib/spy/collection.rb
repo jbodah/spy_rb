@@ -24,8 +24,8 @@ module Spy
       end
     end
 
-    def contains?(receiver, msg, method_type)
-      !@store[key_for(receiver, msg, method_type)].nil?
+    def contains?(spy)
+      !@store[key_for(spy.receiver, spy.msg, spy.method_type)].nil?
     end
 
     private

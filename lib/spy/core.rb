@@ -9,12 +9,14 @@ module Spy
     end
 
     def add_spy(receiver, msg, method_type)
-      if spy_collection.contains?(receiver, msg, method_type)
+      spy = Instance.new(receiver, msg, method_type)
+
+      if spy_collection.contains?(spy)
         raise Errors::AlreadySpiedError
       end
 
-      value = Instance.new(receiver, msg, method_type)
-      spy_collection.insert(receiver, msg, method_type, value)
+      spy_collection.insert(receiver, msg, method_type, spy)
+      spy.start
     end
 
     def remove_spy(receiver, msg, method_type)
@@ -22,12 +24,13 @@ module Spy
         raise NoMethodError
       end
 
-      spy_collection.remove(receiver, msg, method_type).destroy
+      spy = spy_collection.remove(receiver, msg, method_type)
+      spy.stop
     end
 
     def remove_all_spies
-      spy_collection.remove_all do |value|
-        value.destroy
+      spy_collection.remove_all do |spy|
+        spy.stop
       end
     end
   end
