@@ -19,13 +19,13 @@ module Spy
     # Removes each element from the collection and calls the block
     # with each deleted element
     def remove_all
-      map do |object_id, msg, method_type|
-        yield remove(find_object(object_id), msg, method_type)
+      map do |receiver, msg, method_type|
+        yield remove(receiver, msg, method_type)
       end
     end
 
-    def contains?(spy)
-      !@store[key_for(spy.receiver, spy.msg, spy.method_type)].nil?
+    def contains?(receiver, msg, method_type)
+      !@store[key_for(receiver, msg, method_type)].nil?
     end
 
     private
@@ -33,24 +33,24 @@ module Spy
     def each
       @store.keys
             .map  {|k| key_parts k}
-            .each {|object_id, msg, method_type| yield object_id, msg, method_type}
+            .each {|receiver, msg, method_type| yield receiver, msg, method_type}
     end
 
     def key_for(receiver, msg, method_type)
       "#{receiver.object_id}|#{msg}|#{method_type}"
     end
 
-    # Looks up an object in the global ObjectSpace
-    def find_object(object_id)
-      ObjectSpace._id2ref(object_id)
-    end
-
     def key_parts(key)
       parts = key.split('|')
-      parts[0] = parts[0].to_i
+      parts[0] = find_object(parts[0].to_i)
       parts[1] = parts[1].to_sym
       parts[2] = parts[2].to_sym
       parts
+    end
+
+    # Looks up an object in the global ObjectSpace
+    def find_object(object_id)
+      ObjectSpace._id2ref(object_id)
     end
   end
 end
