@@ -31,9 +31,7 @@ module Spy
     #               Spy.restore(receiver, msg)  => stops spying on the given receiver and message
     def restore(*args)
       if args.length == 1 && args[0] == :all
-        collection.each do |object_id, msg, method_type|
-          restore(find_object(object_id), msg, method_type)
-        end
+        remove_all_spies
       elsif args.length == 2
         receiver, msg = *args
         # TODO is this what we want to default to?
@@ -48,24 +46,26 @@ module Spy
 
     private
 
-    # Looks up an object in the global ObjectSpace
-    def find_object(object_id)
-      ObjectSpace._id2ref(object_id)
-    end
-
-    # Global hash of known collection
-    def collection
-      @collection ||= Collection.new
+    # Collection of Spies
+    def spy_collection
+      @spy_collection ||= Collection.new
     end
 
     def add_spy(receiver, msg, method_type)
-      raise Errors::AlreadySpiedError if collection.contains?(receiver, msg, method_type)
-      collection.insert receiver, msg, method_type, Instance.new(receiver, msg, method_type)
+      raise Errors::AlreadySpiedError if spy_collection.contains?(receiver, msg, method_type)
+      value = Instance.new(receiver, msg, method_type)
+      spy_collection.insert(receiver, msg, method_type, value)
     end
 
     def remove_spy(receiver, msg, method_type)
       raise NoMethodError unless receiver.send("#{method_type}s".to_sym).include? msg
-      collection.remove(receiver, msg, method_type)
+      spy_collection.remove(receiver, msg, method_type).destroy
+    end
+
+    def remove_all_spies
+      spy_collection.remove_all do |value|
+        value.destroy
+      end
     end
   end
 end
