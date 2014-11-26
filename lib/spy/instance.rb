@@ -11,6 +11,8 @@ module Spy
       @receiver = receiver
       @method_type = method_type
 
+      # Cache the original method for unwrapping later
+      @original = @receiver.send(method_type, msg)
       @call_count = 0
       @match_args = []
       wrap_original
@@ -22,9 +24,7 @@ module Spy
 
     def wrap_original
       context = self
-      # Cache the original method for unwrapping later
-      @original = @receiver.send(method_type, msg)
-      @original.owner.instance_eval do
+      original.owner.instance_eval do
         define_method context.msg do |*args|
           if context.original.respond_to? :bind
             result = context.original.bind(self).call(*args)
@@ -39,7 +39,7 @@ module Spy
 
     def unwrap_original
       context = self
-      @original.owner.instance_eval do
+      original.owner.instance_eval do
         define_method context.msg, context.original
       end
     end
