@@ -4,11 +4,13 @@
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    attr_reader :msg, :original, :call_count
+    attr_reader :msg, :original, :method_type, :call_count
 
-    def initialize(msg, original)
+    def initialize(receiver, msg, method_type)
       @msg = msg
-      @original = original
+      @receiver = receiver
+      @method_type = method_type
+
       @call_count = 0
       @match_args = []
       wrap_original
@@ -20,9 +22,17 @@ module Spy
 
     def wrap_original
       context = self
+      # Cache the original method for unwrapping later
+      @original = @receiver.send(method_type, msg)
       @original.owner.instance_eval do
         define_method context.msg do |*args|
-          context.wrapped *args
+          if context.original.respond_to? :bind
+            result = context.original.bind(self).call(*args)
+          else
+            result = context.original.call(*args)
+          end
+          context.after_call(result, *args)
+          result
         end
       end
     end
@@ -32,12 +42,6 @@ module Spy
       @original.owner.instance_eval do
         define_method context.msg, context.original
       end
-    end
-
-    def wrapped(*args)
-      result = @original.call(*args)
-      after_call(result, *args)
-      result
     end
 
     def after_call(result, *args)

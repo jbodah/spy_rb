@@ -53,7 +53,7 @@ class SpyTest < Minitest::Spec
       it 'should not modify the spied methods return value' do
         Spy.on(FakeClass, :hello_world)
         assert FakeClass.hello_world == 'hello world'
-        
+
         instance = FakeClass.new
         Spy.on(instance, :age)
         assert instance.age == 25
@@ -65,7 +65,17 @@ class SpyTest < Minitest::Spec
         end
       end
 
-      it 'accepts an instance option which modifies the method for instances of the class' do
+      it 'has an any_instance method that allows you to spy on instances of a class' do
+        spy = Spy.on_any_instance(FakeClass, :age)
+        instance_a = FakeClass.new
+        instance_a.age
+        assert spy.call_count == 1
+        instance_b = FakeClass.new
+        instance_b.age
+        assert spy.call_count == 2
+      end
+
+      it 'throws if the instance method is already being spied' do
         skip
       end
 
@@ -98,7 +108,7 @@ class SpyTest < Minitest::Spec
         Spy.on(klass, :hello_world)
 
         Spy.restore(:all)
-        
+
         assert obj.method(:age) == obj_method
         assert klass.method(:hello_world) == klass_method
       end
@@ -149,7 +159,7 @@ class SpyTest < Minitest::Spec
         skip
       end
     end
-   
+
     describe '.call_count' do
       after { Spy.restore :all }
 
