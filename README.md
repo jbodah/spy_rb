@@ -55,6 +55,16 @@ puts spy.call_count
 # => 1
 
 Spy.restore(:all)
+
+spy = Spy.on_any_instance(TestClass, :push)
+a = TestClass.new
+a.push 'apple'
+b = TestClass.new
+b.push 'orange'
+puts spy.call_count
+# => 2
+
+Spy.restore(TestClass, :push)
 ```
 
 If using in the context of a test suite, you may want to patch a `Spy.restore(:all)` into your teardowns:
@@ -71,3 +81,6 @@ end
 ## TODO
 - spying on methods used by spies causes stack overflow
 - does visiblity of new method match old one?
+- count # of returns
+- exception change call count?
+- more tests around any_instance
