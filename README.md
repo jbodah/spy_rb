@@ -84,3 +84,10 @@ end
 - count # of returns
 - exception change call count?
 - more tests around any_instance
+- .when { ... }/.if { ... } .then { ... }
+  - some external condition
+  - some arguments
+  - some internal condition
+- record call signatures/return values
+- checking return values
+
