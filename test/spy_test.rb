@@ -17,6 +17,31 @@ end
 
 class SpyTest < Minitest::Spec
   describe Spy do
+    describe 'on_any_instance' do
+      after { Spy.restore :all }
+
+      it 'allows you to spy on instances of a class' do
+        spy = Spy.on_any_instance(FakeClass, :age)
+        instance_a = FakeClass.new
+        instance_a.age
+        assert spy.call_count == 1
+        instance_b = FakeClass.new
+        instance_b.age
+        assert spy.call_count == 2
+      end
+
+      it 'can spy on instances that have already been initialized' do
+        instance = FakeClass.new
+        spy = Spy.on_any_instance(FakeClass, :age)
+        instance.age
+        assert spy.call_count == 1
+      end
+
+      it 'throws if the instance method is already being spied' do
+        skip
+      end
+    end
+
     describe '.on' do
       after { Spy.restore :all }
 
@@ -63,20 +88,6 @@ class SpyTest < Minitest::Spec
         assert_raises NameError do
           Spy.on(FakeClass, :this_does_not_exist)
         end
-      end
-
-      it 'has an any_instance method that allows you to spy on instances of a class' do
-        spy = Spy.on_any_instance(FakeClass, :age)
-        instance_a = FakeClass.new
-        instance_a.age
-        assert spy.call_count == 1
-        instance_b = FakeClass.new
-        instance_b.age
-        assert spy.call_count == 2
-      end
-
-      it 'throws if the instance method is already being spied' do
-        skip
       end
 
       it 'throws if the method is already being spied' do
