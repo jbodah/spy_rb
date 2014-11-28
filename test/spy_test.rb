@@ -169,6 +169,14 @@ class SpyTest < Minitest::Spec
 
       it 'should allow tracking of multiple arg sets' do
         skip
+        spy_a = Spy.on(FakeClass, :repeat).with_args('hello')
+        spy_b = Spy.on(FakeClass, :repeat).with_args('goodbye')
+        FakeClass.repeat 'hello'
+        assert spy_a.call_count == 1
+        assert spy_b.call_count == 0
+        FakeClass.repeat 'goodbye'
+        assert spy_a.call_count == 1
+        assert spy_b.call_count == 1
       end
     end
 
