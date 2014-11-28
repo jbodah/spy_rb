@@ -105,9 +105,14 @@ class SpyTest < Minitest::Spec
       end
 
       it 'allows you to spy on multiple methods on the same object' do
-        skip
-        Spy.on(FakeClass, :hello_world)
-        Spy.on(FakeClass, :repeat)
+        spy_a = Spy.on(FakeClass, :hello_world)
+        spy_b = Spy.on(FakeClass, :repeat)
+        FakeClass.hello_world
+        assert spy_a.call_count == 1
+        assert spy_b.call_count == 0
+        FakeClass.repeat('test')
+        assert spy_a.call_count == 1
+        assert spy_b.call_count == 1
       end
     end
 
