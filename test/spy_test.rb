@@ -38,7 +38,10 @@ class SpyTest < Minitest::Spec
       end
 
       it 'throws if the instance method is already being spied' do
-        skip
+        Spy.on_any_instance(FakeClass, :age)
+        assert_raises Spy::Errors::AlreadySpiedError do
+          Spy.on_any_instance(FakeClass, :age)
+        end
       end
     end
 
