@@ -201,5 +201,27 @@ class SpyTest < Minitest::Spec
       skip
       #Spy.on(FakeClass, :hello_world).each_call {|*args| ...}
     end
+
+    describe '.when' do
+      it 'only increments call count if it returns true' do
+        skip
+        tracking = false
+        spy = Spy.on(FakeClass, :hello_world).when { tracking == true }
+        FakeClass.hello_world
+        assert spy.call_count == 0
+        tracking = true
+        assert spy.call_count == 1
+      end
+
+      it 'passes args to the block' do
+        skip # TODO what about return result too..?
+      end
+    end
+
+    describe '.then' do
+      it 'calls it when the method passes all spy conditions' do
+        skip
+      end
+    end
   end
 end
