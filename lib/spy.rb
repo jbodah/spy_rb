@@ -1,4 +1,4 @@
-require_relative 'spy/api'
+require 'spy/api'
 
 module Spy
   extend API

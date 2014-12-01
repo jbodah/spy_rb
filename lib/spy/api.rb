@@ -1,4 +1,4 @@
-require_relative 'core'
+require 'spy/core'
 
 module Spy
   module API

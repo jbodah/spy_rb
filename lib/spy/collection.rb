@@ -1,4 +1,4 @@
-require_relative 'collection/entry'
+require 'spy/collection/entry'
 
 module Spy
   class Collection

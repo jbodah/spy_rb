@@ -1,6 +1,6 @@
-require_relative 'instance'
-require_relative 'collection'
-require_relative 'errors'
+require 'spy/instance'
+require 'spy/collection'
+require 'spy/errors'
 
 module Spy
   class Core
