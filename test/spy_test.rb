@@ -1,5 +1,4 @@
 require 'test_helper'
-require_relative '../lib/spy'
 
 class FakeClass
   def age
