@@ -196,11 +196,6 @@ class SpyTest < Minitest::Spec
       end
     end
 
-    it 'should accept a block' do
-      skip
-      #Spy.on(FakeClass, :hello_world).each_call {|*args| ...}
-    end
-
     describe '.when' do
       it 'only increments call count if it returns true' do
         skip
