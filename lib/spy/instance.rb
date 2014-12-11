@@ -13,7 +13,7 @@ module Spy
       @msg = msg
       @receiver = receiver
       @method_type = method_type
-      @filters = []
+      @before_filters = []
       @call_count = 0
 
       # Cache the original method for unwrapping later
@@ -25,12 +25,12 @@ module Spy
       context = self
       original.owner.instance_eval do
         define_method context.msg do |*args|
+          context.before_call(*args)
           if context.original.respond_to? :bind
             result = context.original.bind(self).call(*args)
           else
             result = context.original.call(*args)
           end
-          context.on_call(result, *args)
           result
         end
         send(context.visibility, context.msg)
@@ -46,22 +46,22 @@ module Spy
       self
     end
 
-    def on_call(result, *args)
-      @call_count += 1 if @filters.all? {|f| f.call(result, *args)}
+    def before_call(*args)
+      @call_count += 1 if @before_filters.all? {|f| f.before_call(*args)}
     end
 
     def with_args(*args)
-      add_filter Callbacks::WithArgs.new(*args)
+      add_before_filter Callbacks::WithArgs.new(*args)
     end
 
     def when(&block)
-      add_filter Callbacks::When.new(block)
+      add_before_filter Callbacks::When.new(block)
     end
 
     private
 
-    def add_filter(filter)
-      @filters << filter
+    def add_before_filter(filter)
+      @before_filters << filter
       self
     end
 

@@ -206,6 +206,16 @@ class SpyTest < Minitest::Spec
         FakeClass.hello_world
         assert spy.call_count == 2
       end
+
+      it 'should increment on exceptions' do
+        obj = Object.new
+        class << obj
+          define_method :throw_exception, Proc.new { raise }
+        end
+        spy = Spy.on(obj, :throw_exception)
+        obj.throw_exception rescue
+        assert spy.call_count == 1
+      end
     end
 
     describe '.when' do

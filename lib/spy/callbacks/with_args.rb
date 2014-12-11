@@ -6,7 +6,7 @@ module Spy
         @match_args = args
       end
 
-      def call(result, *args)
+      def before_call(*args)
         @match_args == args
       end
     end

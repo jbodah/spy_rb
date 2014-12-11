@@ -91,7 +91,6 @@ end
 ## TODO
 - spying on methods used by spies causes stack overflow
 - count # of returns
-- exception change call count?
 - more tests around any_instance
   - does restore actually work for on_any_instance??
 - record call signatures/return values
