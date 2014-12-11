@@ -49,16 +49,6 @@ object.push 'goodbye'
 puts spy.call_count
 # => 1
 
-# Use with_args to filter by args
-object = TestClass.new
-spy = Spy.on(object, :push).with_args('orange')
-object.push 'apple'
-puts spy.call_count
-# => 0
-object.push 'orange'
-puts spy.call_count
-# => 1
-
 # Stop spying on all methods
 Spy.restore(:all)
 
