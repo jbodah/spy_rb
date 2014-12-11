@@ -1,4 +1,5 @@
 require 'spy/callbacks/with_args'
+require 'spy/callbacks/when'
 
 # An instance of a spied method
 # - Holds a reference to the original method
@@ -49,6 +50,10 @@ module Spy
 
     def with_args(*args)
       add_filter Callbacks::WithArgs.new(*args)
+    end
+
+    def when(&block)
+      add_filter Callbacks::When.new(block)
     end
 
     private

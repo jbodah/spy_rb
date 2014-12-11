@@ -16,9 +16,9 @@ end
 
 class SpyTest < Minitest::Spec
   describe Spy do
-    describe 'on_any_instance' do
-      after { Spy.restore :all }
+    after { Spy.restore :all }
 
+    describe 'on_any_instance' do
       it 'allows you to spy on instances of a class' do
         spy = Spy.on_any_instance(FakeClass, :age)
         instance_a = FakeClass.new
@@ -45,8 +45,6 @@ class SpyTest < Minitest::Spec
     end
 
     describe '.on' do
-      after { Spy.restore :all }
-
       describe 'with no arguments' do
         it 'throws an ArgumentError' do
           assert_raises ArgumentError do
@@ -151,8 +149,6 @@ class SpyTest < Minitest::Spec
     end
 
     describe '.with_args' do
-      after { Spy.restore :all }
-
       it 'should only count times when the args match' do
         spy = Spy.on(FakeClass, :repeat).with_args('hello')
         assert spy.call_count == 0
@@ -180,8 +176,6 @@ class SpyTest < Minitest::Spec
     end
 
     describe '.call_count' do
-      after { Spy.restore :all }
-
       it 'should initially be zero' do
         spy = Spy.on(FakeClass, :hello_world)
         assert spy.call_count == 0
@@ -197,13 +191,13 @@ class SpyTest < Minitest::Spec
     end
 
     describe '.when' do
-      it 'only increments call count if it returns true' do
-        skip
+      it 'only increments call count if the filter returns true' do
         tracking = false
         spy = Spy.on(FakeClass, :hello_world).when { tracking == true }
         FakeClass.hello_world
         assert spy.call_count == 0
         tracking = true
+        FakeClass.hello_world
         assert spy.call_count == 1
       end
 
