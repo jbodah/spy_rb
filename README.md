@@ -65,6 +65,17 @@ puts spy.call_count
 # => 2
 
 Spy.restore(TestClass, :push)
+
+a = TestClass.new
+spy = Spy.on(a, :push).when {|to_push| to_push == 'apple'}
+a.push 'pear'
+puts spy.call_count
+# => 0
+a.push 'apple'
+puts spy.call_count
+# => 1
+
+Spy.restore(:all)
 ```
 
 If using in the context of a test suite, you may want to patch a `Spy.restore(:all)` into your teardowns:
