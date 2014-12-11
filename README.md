@@ -90,7 +90,6 @@ end
 
 ## TODO
 - spying on methods used by spies causes stack overflow
-- does visiblity of new method match old one?
 - count # of returns
 - exception change call count?
 - more tests around any_instance

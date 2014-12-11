@@ -7,7 +7,7 @@ require 'spy/callbacks/when'
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    attr_reader :receiver, :method_type, :msg, :original, :call_count
+    attr_reader :receiver, :method_type, :msg, :original, :call_count, :visibility
 
     def initialize(receiver, msg, method_type)
       @msg = msg
@@ -18,6 +18,7 @@ module Spy
 
       # Cache the original method for unwrapping later
       @original = @receiver.send(method_type, msg)
+      @visibility = extract_visibility
     end
 
     def start
@@ -32,6 +33,7 @@ module Spy
           context.on_call(result, *args)
           result
         end
+        send(context.visibility, context.msg)
       end
       self
     end
@@ -61,6 +63,17 @@ module Spy
     def add_filter(filter)
       @filters << filter
       self
+    end
+
+    def extract_visibility
+      owner = @original.owner
+      [:public, :protected, :private].each do |vis|
+        query = "#{vis}_method_defined?"
+        if owner.respond_to?(query) && owner.send(query, @msg)
+          return vis
+        end
+      end
+      raise NoMethodError, "couldn't find method #{@msg} belonging to #{owner}"
     end
   end
 end

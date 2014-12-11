@@ -114,6 +114,21 @@ class SpyTest < Minitest::Spec
         assert spy_a.call_count == 1
         assert spy_b.call_count == 1
       end
+
+      it 'leaves the method with the same visibility it had previously' do
+        klass = Class.new(Object) do
+          private
+
+          def hello
+            'hello'
+          end
+        end
+
+        obj = klass.new
+        assert obj.class.private_method_defined?(:hello)
+        Spy.on(obj, :hello)
+        assert obj.class.private_method_defined?(:hello)
+      end
     end
 
     describe '.restore' do
