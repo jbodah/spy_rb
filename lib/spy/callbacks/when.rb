@@ -5,7 +5,7 @@ module Spy
         @filter = filter
       end
 
-      def call(*args)
+      def call(result, *args)
         @filter.call(*args)
       end
     end

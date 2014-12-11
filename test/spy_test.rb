@@ -12,6 +12,9 @@ class FakeClass
   def self.repeat(arg)
     arg
   end
+
+  def self.multi_args(*args)
+  end
 end
 
 class SpyTest < Minitest::Spec
@@ -201,8 +204,18 @@ class SpyTest < Minitest::Spec
         assert spy.call_count == 1
       end
 
-      it 'passes args to the block' do
-        skip # TODO what about return result too..?
+      it 'passes all of the call arguments to the block' do
+        arg_count = 0
+        Spy.on(FakeClass, :multi_args).when {|*args| arg_count = args.size}
+        FakeClass.multi_args(1, 2, 3)
+        assert arg_count == 3
+      end
+
+      it 'allows the user to only capture some args' do
+        sum = 0
+        Spy.on(FakeClass, :multi_args).when {|one, two| sum = one + two}
+        FakeClass.multi_args(1, 2, 3)
+        assert sum == 3
       end
     end
 
