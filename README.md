@@ -34,17 +34,22 @@ class TestClass
   end
 end
 
+# Spy on singleton methods
+# Query for call count
 object = TestClass.new
 spy = Spy.on(object, :push)
 object.push 'hello'
 puts spy.call_count
 # => 1
 
+# Restore that method
+# Call count doesn't change
 Spy.restore(object, :push)
 object.push 'goodbye'
 puts spy.call_count
 # => 1
 
+# Use with_args to filter by args
 object = TestClass.new
 spy = Spy.on(object, :push).with_args('orange')
 object.push 'apple'
@@ -54,8 +59,10 @@ object.push 'orange'
 puts spy.call_count
 # => 1
 
+# Stop spying on all methods
 Spy.restore(:all)
 
+# Spy on any instance of a class
 spy = Spy.on_any_instance(TestClass, :push)
 a = TestClass.new
 a.push 'apple'
@@ -64,8 +71,10 @@ b.push 'orange'
 puts spy.call_count
 # => 2
 
+# Restore a spied instance method
 Spy.restore(TestClass, :push)
 
+# Only increment call count when an expression returns true
 a = TestClass.new
 spy = Spy.on(a, :push).when {|to_push| to_push == 'apple'}
 a.push 'pear'
@@ -95,6 +104,7 @@ end
 - count # of returns
 - exception change call count?
 - more tests around any_instance
+  - does restore actually work for on_any_instance??
 - record call signatures/return values
 - checking return values
 
