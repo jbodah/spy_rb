@@ -1,3 +1,5 @@
+require 'spy/callbacks/with_args'
+
 # An instance of a spied method
 # - Holds a reference to the original method
 # - Wraps the original method
@@ -10,11 +12,11 @@ module Spy
       @msg = msg
       @receiver = receiver
       @method_type = method_type
+      @filters = []
+      @call_count = 0
 
       # Cache the original method for unwrapping later
       @original = @receiver.send(method_type, msg)
-      @call_count = 0
-      @match_args = []
     end
 
     def start
@@ -26,7 +28,7 @@ module Spy
           else
             result = context.original.call(*args)
           end
-          context.after_call(result, *args)
+          context.on_call(result, *args)
           result
         end
       end
@@ -41,13 +43,18 @@ module Spy
       self
     end
 
-    def after_call(result, *args)
-      return unless @match_args.empty? || @match_args == args
-      @call_count += 1
+    def on_call(result, *args)
+      @call_count += 1 if @filters.all? {|f| f.call(result, *args)}
     end
 
     def with_args(*args)
-      @match_args = args || []
+      add_filter Callbacks::WithArgs.new(*args)
+    end
+
+    private
+
+    def add_filter(filter)
+      @filters << filter
       self
     end
   end
