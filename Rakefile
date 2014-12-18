@@ -25,3 +25,9 @@ task :deploy => [:clean, :build] do
   gem = Dir.glob('*.gem')
   system "gem push #{gem}"
 end
+
+task :change_version do
+  version_file = 'lib/spy/version.rb'
+  text = File.read(version_file).gsub(/[\d\.]+/, ENV['TO'])
+  File.open(version_file, 'w') {|f| f.puts text}
+end
