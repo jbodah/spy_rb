@@ -30,4 +30,6 @@ task :change_version do
   version_file = 'lib/spy/version.rb'
   text = File.read(version_file).gsub(/[\d\.]+/, ENV['TO'])
   File.open(version_file, 'w') {|f| f.puts text}
+  system "git tag #{ENV['TO']}"
+  puts "Tag generated. Don't forget to push --tags! :)"
 end
