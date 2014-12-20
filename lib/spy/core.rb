@@ -8,14 +8,14 @@ module Spy
       @spy_collection ||= Collection.new
     end
 
-    def add_spy(receiver, msg, method_type)
-      spy = Instance.new(receiver, msg, method_type)
+    def add_spy(spied, method)
+      spy = Instance.new(spied, method)
       spy_collection << spy
       spy.start
     end
 
-    def remove_spy(receiver, msg, method_type)
-      spy = spy_collection.pop(receiver, msg, method_type)
+    def remove_spy(spied, method)
+      spy = spy_collection.pop(method)
       spy.stop
     end
 

@@ -31,13 +31,19 @@ module Spy
     # Add a slicker interface that abstracts away Collection::Entry
     module SpyHelper
       def <<(spy)
-        entry = Collection::Entry.new(spy.receiver, spy.msg, spy.method_type)
+        receiver = spy.original.is_a?(Method) ? spy.original.receiver : nil
+        name = spy.original.name
+        klass = spy.original.class
+        entry = Collection::Entry.new(receiver, name, klass)
         entry.value = spy
         insert entry
       end
 
-      def pop(receiver, msg, method_type)
-        remove Collection::Entry.new(receiver, msg, method_type)
+      def pop(method)
+        receiver = method.is_a?(Method) ? method.receiver : nil
+        name = method.name
+        klass = method.class
+        remove Collection::Entry.new(receiver, name, klass)
       end
     end
 

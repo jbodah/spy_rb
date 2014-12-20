@@ -1,5 +1,6 @@
 require 'spy/callbacks/with_args'
 require 'spy/callbacks/when'
+require 'spy/instance/strategy'
 
 # An instance of a spied method
 # - Holds a reference to the original method
@@ -7,42 +8,24 @@ require 'spy/callbacks/when'
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    attr_reader :receiver, :method_type, :msg, :original, :call_count, :visibility
+    attr_reader :original, :spied, :strategy, :call_count, :visibility
 
-    def initialize(receiver, msg, method_type)
-      @msg = msg
-      @receiver = receiver
-      @method_type = method_type
+    def initialize(spied, original)
+      @spied = spied
+      @original = original
+      @visibility = extract_visibility
       @before_filters = []
       @call_count = 0
-
-      # Cache the original method for unwrapping later
-      @original = @receiver.send(method_type, msg)
-      @visibility = extract_visibility
+      @strategy = Strategy.factory_build(self)
     end
 
     def start
-      context = self
-      original.owner.instance_eval do
-        define_method context.msg do |*args|
-          context.before_call(*args)
-          if context.original.respond_to? :bind
-            result = context.original.bind(self).call(*args)
-          else
-            result = context.original.call(*args)
-          end
-          result
-        end
-        send(context.visibility, context.msg)
-      end
+      @strategy.apply
       self
     end
 
     def stop
-      context = self
-      original.owner.instance_eval do
-        define_method context.msg, context.original
-      end
+      @strategy.undo
       self
     end
 
@@ -69,11 +52,11 @@ module Spy
       owner = @original.owner
       [:public, :protected, :private].each do |vis|
         query = "#{vis}_method_defined?"
-        if owner.respond_to?(query) && owner.send(query, @msg)
+        if owner.respond_to?(query) && owner.send(query, @original.name)
           return vis
         end
       end
-      raise NoMethodError, "couldn't find method #{@msg} belonging to #{owner}"
+      raise NoMethodError, "couldn't find method #{@original.name} belonging to #{owner}"
     end
   end
 end
