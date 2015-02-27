@@ -92,12 +92,7 @@ end
 ## Deploying
 
 ```sh
-rake test
-rake change_version TO=0.2.0
-git add lib/**/version.rb
-git commit -m 'bump to version $TO'
-git push --tags
-rake deploy
+rake full_deploy TO=0.2.1
 ```
 
 ## TODO

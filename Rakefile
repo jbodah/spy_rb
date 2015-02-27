@@ -32,16 +32,21 @@ task :full_deploy => [:test, :change_version] do
   Rake::Task['deploy'].invoke
 end
 
-
 task :change_version do
   raise "Version required: ENV['TO']" unless ENV['TO']
+
+  puts 'Checking for existing tag'
+  raise "Tag '#{ENV['TO']}' already exists!" unless `git tag -l $TO`.empty?
+
+  puts "Updating version.rb to '#{ENV['TO']}'"
   version_file = 'lib/spy/version.rb'
   text = File.read(version_file).gsub(/[\d\.]+/, ENV['TO'])
-  puts "Updating version.rb to '#{ENV['TO']}'"
   File.open(version_file, 'w') {|f| f.puts text}
+
   puts 'Committing version.rb'
   exit(1) unless system "git add lib/**/version.rb"
   exit(1) unless system "git commit -m 'bump to version #{ENV['TO']}'"
   exit(1) unless system "git tag #{ENV['TO']}"
+
   puts "Tag '#{ENV['TO']}' generated. Don't forget to push --tags! :)"
 end
