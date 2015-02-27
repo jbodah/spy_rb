@@ -28,7 +28,7 @@ end
 
 desc 'runs through entire deploy process'
 task :full_deploy => [:test, :change_version] do
-  system "git push --tags"
+  system "git push && git push --tags"
   Rake::Task['deploy'].invoke
 end
 
