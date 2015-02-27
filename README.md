@@ -89,6 +89,14 @@ ActiveSupport::TestCase.class_eval do
 end
 ```
 
+## Deploying
+
+```sh
+rake test
+rake change_version TO=0.2.0 && git push --tags
+rake deploy
+```
+
 ## TODO
 - spying on methods used by spies causes stack overflow
 - count # of returns
