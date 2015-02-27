@@ -10,14 +10,15 @@ module Spy
     def on(*args)
       case args.length
       when 2
-        return core.add_spy *(args << :method)
+        spied, msg = *args
+        return core.add_spy(spied, spied.method(msg))
       end
       raise ArgumentError
     end
 
     # TODO docs
-    def on_any_instance(mod, msg)
-      core.add_spy(mod, msg, :instance_method)
+    def on_any_instance(spied, msg)
+      core.add_spy(spied, spied.instance_method(msg))
     end
 
     # Stops spying on the method and restores its original functionality
@@ -37,9 +38,11 @@ module Spy
       when 1
         return core.remove_all_spies if args.first == :all
       when 2
-        return core.remove_spy *(args << :method)
+        spied, msg = *args
+        return core.remove_spy(spied, spied.method(msg))
       when 3
-        return core.remove_spy *args
+        spied, msg, method_type = *args
+        return core.remove_spy(spied, spied.send(method_type, msg))
       end
       raise ArgumentError
     end

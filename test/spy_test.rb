@@ -1,253 +1,233 @@
 require 'test_helper'
 
-class FakeClass
-  def age
-    25
-  end
+class TestSuperclass
+  def self.superclass_singleton_owned_method; end
+  def superclass_owned_method; end
+end
 
-  def self.hello_world
-    'hello world'
-  end
+module TestModule
+  def module_owned_method; end
+end
 
-  def self.repeat(arg)
-    arg
-  end
+class TestClass < TestSuperclass
+  include TestModule
 
-  def self.multi_args(*args)
-  end
+  def self.existing_singleton_owned_method; end
+  def class_owned_method; end
 end
 
 class SpyTest < Minitest::Spec
-  describe Spy do
-    after { Spy.restore :all }
+  def eval_option(opt, *args)
+    opt.respond_to?(:call) ? opt.call(*args) : opt
+  end
 
-    describe 'on_any_instance' do
-      it 'allows you to spy on instances of a class' do
-        spy = Spy.on_any_instance(FakeClass, :age)
-        instance_a = FakeClass.new
-        instance_a.age
-        assert spy.call_count == 1
-        instance_b = FakeClass.new
-        instance_b.age
-        assert spy.call_count == 2
+  # Wrapping
+  [
+    {
+      name:     'an instance and a dynamic singleton-owned method',
+      to_spy:   Proc.new { TestClass.new },
+      msg:      :singleton_owned_method,
+      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      owner:    Proc.new {|spied| spied.singleton_class}
+    },
+    {
+      name:     'a class and a dynamic singleton-owned method',
+      to_spy:   TestClass,
+      msg:      :singleton_owned_method,
+      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      owner:    TestClass.singleton_class
+    },
+    {
+      name:     'a module and a dynamic singleton-owned method',
+      to_spy:   TestModule,
+      msg:      :singleton_owned_method,
+      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      owner:    TestModule.singleton_class
+    },
+    {
+      name:     'a class and an existing singleton-owned method',
+      to_spy:   TestClass,
+      msg:      :existing_singleton_owned_method,
+      original: Proc.new { TestClass.method :existing_singleton_owned_method },
+      owner:    TestClass.singleton_class
+    },
+  ].each do |t|
+    describe t[:name] do
+      before do
+        @spied = eval_option(t[:to_spy])
+        @sym = t[:msg]
+        @original_method = eval_option(t[:original], @spied, @sym)
+        # sanity check
+        assert_equal eval_option(t[:owner], @spied), @original_method.owner
       end
 
-      it 'can spy on instances that have already been initialized' do
-        instance = FakeClass.new
-        spy = Spy.on_any_instance(FakeClass, :age)
-        instance.age
-        assert spy.call_count == 1
+      after do
+        Spy.restore :all
+        eval_option(t[:cleanup], @spied, @sym)
       end
 
-      it 'throws if the instance method is already being spied' do
-        Spy.on_any_instance(FakeClass, :age)
-        assert_raises Spy::Errors::AlreadySpiedError do
-          Spy.on_any_instance(FakeClass, :age)
+      describe 'Spy.on' do
+        it 'chooses a wrapping strategy' do
+          s = Spy.on(@spied, @sym)
+          assert_equal s.strategy.class, Spy::Instance::Strategy::Wrap
+        end
+
+        it 'wraps the method' do
+          Spy.on(@spied, @sym)
+          wrapped = @spied.method(@sym)
+          refute_equal @original_method, wrapped
+          assert_equal @original_method.owner, wrapped.owner
+          refute_equal @original_method.source_location, wrapped.source_location
+        end
+      end
+
+      describe 'Spy.restore' do
+        it 'restores the original method' do
+          Spy.on(@spied, @sym)
+          Spy.restore(@spied, @sym)
+          restored = @spied.method(@sym)
+          assert_equal @original_method, restored
         end
       end
     end
+  end
 
-    describe '.on' do
-      describe 'with no arguments' do
-        it 'throws an ArgumentError' do
-          assert_raises ArgumentError do
-            Spy.on
+  # Intercepting
+  [
+    { name: 'an instance and a class-owned method',             to_spy: Proc.new { TestClass.new }, msg: :class_owned_method,               owner: TestClass },
+    { name: 'an instance and a module-owned method',            to_spy: Proc.new { TestClass.new }, msg: :module_owned_method,              owner: TestModule },
+    { name: 'an instance and a superclass-owned method',        to_spy: Proc.new { TestClass.new }, msg: :superclass_owned_method,          owner: TestSuperclass },
+    # NOTE: Module#include only adds instance methods. You can make a PR if you're including modules in your singleton classes
+    #{ name: 'a class and a module-singleton-owned method',  to_spy: Proc.new { TestClass },     msg: :module_singleton_owned_method,  owner: TestModule.singleton_class }
+    { name: 'a class and a superclass-singleton-owned method',  to_spy: Proc.new { TestClass },     msg: :superclass_singleton_owned_method, owner: TestSuperclass.singleton_class },
+  ].each do |t|
+    describe t[:name] do
+      before do
+        @spied = t[:to_spy].call
+        @sym = t[:msg]
+        @original_method = @spied.method(@sym)
+        assert_equal t[:owner], @original_method.owner
+      end
+
+      after do
+        Spy.restore :all
+      end
+
+      describe 'Spy.on' do
+        it 'chooses an intercept strategy' do
+          s = Spy.on(@spied, @sym)
+          assert_equal s.strategy.class, Spy::Instance::Strategy::Intercept
+        end
+
+        it 'defines a singleton method' do
+          Spy.on(@spied, @sym)
+          singleton_method = @spied.method(@sym)
+          refute_equal @original_method, singleton_method
+          assert_equal @spied.singleton_class, singleton_method.owner
+          refute_equal @original_method.source_location, singleton_method.source_location
+        end
+      end
+
+      describe 'Spy.restore' do
+        it 'restores the original method' do
+          Spy.on(@spied, @sym)
+          Spy.restore(@spied, @sym)
+          restored = @spied.method(@sym)
+          assert_equal @original_method, restored
+        end
+      end
+    end
+  end
+
+  describe 'any_instance' do
+    describe 'Spy.on_any_instance' do
+      describe 'an instance' do
+        it 'throws an exception' do
+          skip
+        end
+      end
+
+      # Wrapping
+      [
+        { name: 'a class and a class-owned method',   to_spy: Proc.new { TestClass },   msg: :class_owned_method },
+        { name: 'a module and a module-owned method', to_spy: Proc.new { TestModule },  msg: :module_owned_method }
+      ].each do |t|
+        describe t[:name] do
+          describe 'and a class-owned method' do
+            before do
+              @spied = t[:to_spy].call
+              @sym = t[:msg]
+              @original_method = @spied.instance_method(@sym)
+            end
+
+            after do
+              Spy.restore :all
+            end
+
+            it 'chooses a wrapping strategy' do
+              s = Spy.on_any_instance(@spied, @sym)
+              assert_equal s.strategy.class, Spy::Instance::Strategy::Wrap
+            end
+
+            it 'wraps the method' do
+              Spy.on_any_instance(@spied, @sym)
+              wrapped = @spied.instance_method(@sym)
+              refute_equal @original_method, wrapped
+              assert_equal @original_method.owner, wrapped.owner
+              refute_equal @original_method.source_location, wrapped.source_location
+            end
+
+            it 'restores the original method' do
+              Spy.on_any_instance(@spied, @sym)
+              Spy.restore(@spied, @sym, :instance_method)
+              restored = @spied.instance_method(@sym)
+              assert_equal @original_method, restored
+            end
           end
         end
       end
 
-      describe 'with one argument' do
-        it 'throws an ArgumentError' do
-          assert_raises ArgumentError do
-            Spy.on Array
+      # Intercepting
+      [
+        { name: 'a class and a superclass-owned method',  msg: :superclass_owned_method },
+        { name: 'a class and a module-owned method',      msg: :module_owned_method }
+      ].each do |t|
+        describe t[:name] do
+          before do
+            @spied = TestClass
+            @sym = t[:msg]
+            @original_method = @spied.instance_method(@sym)
+          end
+
+          after do
+            Spy.restore :all
+          end
+
+          it 'chooses an intercept strategy' do
+            s = Spy.on_any_instance(@spied, @sym)
+            assert_equal s.strategy.class, Spy::Instance::Strategy::Intercept
+          end
+
+          it 'defines a method on the class' do
+            Spy.on_any_instance(@spied, @sym)
+            class_defined_method = @spied.instance_method(@sym)
+            refute_equal @original_method, class_defined_method
+            assert_equal @spied, class_defined_method.owner
+            refute_equal @original_method.source_location, class_defined_method.source_location
+          end
+
+          it 'restores the original method' do
+            Spy.on_any_instance(@spied, @sym)
+            Spy.restore(@spied, @sym, :instance_method)
+            restored = @spied.instance_method(@sym)
+            assert_equal @original_method, restored
           end
         end
-      end
-
-      it 'modifies the original method of an object' do
-        obj = FakeClass.new
-        old_method = obj.method(:age)
-        Spy.on(obj, :age)
-        assert obj.method(:age) != old_method
-      end
-
-      it 'modifies the class method of a class' do
-        klass = FakeClass
-        old_method = FakeClass.method(:hello_world)
-        Spy.on(FakeClass, :hello_world)
-        assert FakeClass.method(:hello_world) != old_method
-      end
-
-      it 'should not modify the spied methods return value' do
-        Spy.on(FakeClass, :hello_world)
-        assert FakeClass.hello_world == 'hello world'
-
-        instance = FakeClass.new
-        Spy.on(instance, :age)
-        assert instance.age == 25
-      end
-
-      it 'throws if the object is missing the method to spy on' do
-        assert_raises NameError do
-          Spy.on(FakeClass, :this_does_not_exist)
-        end
-      end
-
-      it 'throws if the method is already being spied' do
-        Spy.on(FakeClass, :hello_world)
-        assert_raises Spy::Errors::AlreadySpiedError do
-          Spy.on(FakeClass, :hello_world)
-        end
-      end
-
-      it 'returns a Spy instance' do
-        assert Spy.on(FakeClass, :hello_world).is_a? Spy::Instance
-      end
-
-      it 'allows you to spy on multiple methods on the same object' do
-        spy_a = Spy.on(FakeClass, :hello_world)
-        spy_b = Spy.on(FakeClass, :repeat)
-        FakeClass.hello_world
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 0
-        FakeClass.repeat('test')
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 1
-      end
-
-      it 'leaves the method with the same visibility it had previously' do
-        klass = Class.new(Object) do
-          private
-
-          def hello
-            'hello'
-          end
-        end
-
-        obj = klass.new
-        assert obj.class.private_method_defined?(:hello)
-        Spy.on(obj, :hello)
-        assert obj.class.private_method_defined?(:hello)
-      end
-    end
-
-    describe '.restore' do
-      it 'restores all of the spied methods with the :all argument' do
-        obj = FakeClass.new
-        obj_method = obj.method(:age)
-        klass = FakeClass
-        klass_method = klass.method(:hello_world)
-
-        Spy.on(obj, :age)
-        Spy.on(klass, :hello_world)
-
-        Spy.restore(:all)
-
-        assert obj.method(:age) == obj_method
-        assert klass.method(:hello_world) == klass_method
-      end
-
-      it 'restores the originally spied method of an object' do
-        obj = FakeClass.new
-        obj_method = obj.method(:age)
-
-        Spy.on(obj, :age)
-
-        Spy.restore(obj, :age)
-
-        assert obj.method(:age) == obj_method
-      end
-
-      it 'throws if the method is not being spied' do
-        obj = FakeClass.new
-        assert_raises Spy::Errors::MethodNotSpiedError do
-          Spy.restore(obj, :age)
-        end
-      end
-    end
-
-    describe '.with_args' do
-      it 'should only count times when the args match' do
-        spy = Spy.on(FakeClass, :repeat).with_args('hello')
-        assert spy.call_count == 0
-        FakeClass.repeat 'yo'
-        assert spy.call_count == 0
-        FakeClass.repeat 'hello'
-        assert spy.call_count == 1
-        FakeClass.repeat 'yo'
-        assert spy.call_count == 1
-        FakeClass.repeat 'hello'
-        assert spy.call_count == 2
-      end
-
-      it 'should allow tracking of multiple arg sets' do
-        skip
-        spy_a = Spy.on(FakeClass, :repeat).with_args('hello')
-        spy_b = Spy.on(FakeClass, :repeat).with_args('goodbye')
-        FakeClass.repeat 'hello'
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 0
-        FakeClass.repeat 'goodbye'
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 1
-      end
-    end
-
-    describe '.call_count' do
-      it 'should initially be zero' do
-        spy = Spy.on(FakeClass, :hello_world)
-        assert spy.call_count == 0
-      end
-
-      it 'should properly increment' do
-        spy = Spy.on(FakeClass, :hello_world)
-        FakeClass.hello_world
-        assert spy.call_count == 1
-        FakeClass.hello_world
-        assert spy.call_count == 2
-      end
-
-      it 'should increment on exceptions' do
-        obj = Object.new
-        class << obj
-          define_method :throw_exception, Proc.new { raise }
-        end
-        spy = Spy.on(obj, :throw_exception)
-        obj.throw_exception rescue
-        assert spy.call_count == 1
-      end
-    end
-
-    describe '.when' do
-      it 'only increments call count if the filter returns true' do
-        tracking = false
-        spy = Spy.on(FakeClass, :hello_world).when { tracking == true }
-        FakeClass.hello_world
-        assert spy.call_count == 0
-        tracking = true
-        FakeClass.hello_world
-        assert spy.call_count == 1
-      end
-
-      it 'passes all of the call arguments to the block' do
-        arg_count = 0
-        Spy.on(FakeClass, :multi_args).when {|*args| arg_count = args.size}
-        FakeClass.multi_args(1, 2, 3)
-        assert arg_count == 3
-      end
-
-      it 'allows the user to only capture some args' do
-        sum = 0
-        Spy.on(FakeClass, :multi_args).when {|one, two| sum = one + two}
-        FakeClass.multi_args(1, 2, 3)
-        assert sum == 3
-      end
-    end
-
-    describe '.then' do
-      it 'calls it when the method passes all spy conditions' do
-        skip
       end
     end
   end
 end
+

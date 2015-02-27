@@ -97,3 +97,5 @@ end
 - record call signatures/return values
 - checking return values
 
+- add exceptions around .on_any_instance
+- clean up tests around when {}, call count, exclusive spying (e.g. one instance/including class and not the other)
