@@ -8,6 +8,7 @@ require 'spy/instance/strategy'
 # - Provides hooks for callbacks
 module Spy
   class Instance
+    # TODO: Do we still need all of these to be public?
     attr_reader :original, :spied, :strategy, :call_count, :visibility
 
     def initialize(spied, original)
@@ -19,29 +20,65 @@ module Spy
       @strategy = Strategy.factory_build(self)
     end
 
-    def start
-      @strategy.apply
-      self
+    # The API we expose to consumers. This is the module you'll
+    # want to look at 90% of the time
+    module ExternalAPI
+      def start
+        @strategy.apply
+        self
+      end
+
+      def stop
+        @strategy.undo
+        self
+      end
+
+      def with_args(*args)
+        add_before_filter Filters::WithArgs.new(*args)
+      end
+
+      def when(&block)
+        add_before_filter Filters::When.new(block)
+      end
     end
 
-    def stop
-      @strategy.undo
-      self
+    # The API we expose internally to our collaborators
+    module InternalAPI
+      # TODO: Not sure if this is the best place for this
+      #
+      # Defines the spy on the target object
+      def attach_to(target)
+        spy = self
+        target.class_eval do
+          define_method spy.original.name do |*args|
+            spy.call(self, *args)
+          end
+          send(spy.visibility, spy.original.name)
+        end
+      end
+
+      # Call the spied method using the given context and arguments.
+      #
+      # Context is required for calling UnboundMethods such as
+      # instance methods defined on a Class
+      def call(context, *args)
+        before_call(*args)
+        if original.is_a?(UnboundMethod)
+          original.bind(context).call(*args)
+        else
+          original.call(*args)
+        end
+      end
     end
+
+    include InternalAPI
+    include ExternalAPI
+
+    private
 
     def before_call(*args)
       @call_count += 1 if @before_filters.all? {|f| f.before_call(*args)}
     end
-
-    def with_args(*args)
-      add_before_filter Filters::WithArgs.new(*args)
-    end
-
-    def when(&block)
-      add_before_filter Filters::When.new(block)
-    end
-
-    private
 
     def add_before_filter(filter)
       @before_filters << filter

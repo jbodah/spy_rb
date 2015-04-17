@@ -8,18 +8,7 @@ module Spy
         end
 
         def apply
-          spy = @spy
-          @intercept_target.class_eval do
-            define_method spy.original.name do |*args|
-              spy.before_call(*args)
-              if spy.original.is_a?(UnboundMethod)
-                spy.original.bind(self).call(*args)
-              else
-                spy.original.call(*args)
-              end
-            end
-            send(spy.visibility, spy.original.name)
-          end
+          @spy.attach_to(@intercept_target)
         end
 
         def undo
