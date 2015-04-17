@@ -1,4 +1,5 @@
 require 'spy/instance/filters/when'
+require 'spy/instance/filters/wrap'
 require 'spy/instance/strategy'
 
 # An instance of a spied method
@@ -15,6 +16,7 @@ module Spy
       @original = original
       @visibility = extract_visibility
       @before_filters = []
+      @around_filters = []
       @call_count = 0
       @strategy = Strategy.factory_build(self)
     end
@@ -34,6 +36,10 @@ module Spy
 
       def when(&block)
         add_before_filter Filters::When.new(block)
+      end
+
+      def wrap(&block)
+        add_around_filter Filters::Wrap.new(block)
       end
     end
 
@@ -75,8 +81,17 @@ module Spy
       @call_count += 1 if @before_filters.all? {|f| f.before_call(*args)}
     end
 
+    def around_call(*args)
+      @around_filters.each {|f| f.around_call(*args)}
+    end
+
     def add_before_filter(filter)
       @before_filters << filter
+      self
+    end
+
+    def add_around_filter(filter)
+      @around_filters << filter
       self
     end
 
