@@ -1,5 +1,5 @@
-require 'spy/callbacks/with_args'
-require 'spy/callbacks/when'
+require 'spy/instance/filters/with_args'
+require 'spy/instance/filters/when'
 require 'spy/instance/strategy'
 
 # An instance of a spied method
@@ -34,11 +34,11 @@ module Spy
     end
 
     def with_args(*args)
-      add_before_filter Callbacks::WithArgs.new(*args)
+      add_before_filter Filters::WithArgs.new(*args)
     end
 
     def when(&block)
-      add_before_filter Callbacks::When.new(block)
+      add_before_filter Filters::When.new(block)
     end
 
     private
