@@ -233,7 +233,7 @@ class LegacySpyTest < Minitest::Spec
 
         assert obj.method(:age) == obj_method
       end
-      
+
       it 'restores singleton methods' do
         obj = LegacyFakeClass
         obj_method = LegacyFakeClass.method(:hello_world)
@@ -249,33 +249,6 @@ class LegacySpyTest < Minitest::Spec
         assert_raises Spy::Errors::MethodNotSpiedError do
           Spy.restore(obj, :age)
         end
-      end
-    end
-
-    describe '.with_args' do
-      it 'should only count times when the args match' do
-        spy = Spy.on(LegacyFakeClass, :repeat).with_args('hello')
-        assert spy.call_count == 0
-        LegacyFakeClass.repeat 'yo'
-        assert spy.call_count == 0
-        LegacyFakeClass.repeat 'hello'
-        assert spy.call_count == 1
-        LegacyFakeClass.repeat 'yo'
-        assert spy.call_count == 1
-        LegacyFakeClass.repeat 'hello'
-        assert spy.call_count == 2
-      end
-
-      it 'should allow tracking of multiple arg sets' do
-        skip
-        spy_a = Spy.on(LegacyFakeClass, :repeat).with_args('hello')
-        spy_b = Spy.on(LegacyFakeClass, :repeat).with_args('goodbye')
-        LegacyFakeClass.repeat 'hello'
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 0
-        LegacyFakeClass.repeat 'goodbye'
-        assert spy_a.call_count == 1
-        assert spy_b.call_count == 1
       end
     end
 

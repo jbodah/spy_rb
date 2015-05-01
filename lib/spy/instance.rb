@@ -33,10 +33,6 @@ module Spy
         self
       end
 
-      def with_args(*args)
-        add_before_filter Filters::WithArgs.new(*args)
-      end
-
       def when(&block)
         add_before_filter Filters::When.new(block)
       end
