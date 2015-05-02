@@ -14,7 +14,7 @@ Spy brings everything that's great about Sinon.JS to Ruby. Mocking frameworks wo
 * Less intrusive than mocking
 * Allows you to test message passing without relying on stubbing
 * Great for testing recursive methods
-* Works for Ruby 2.1+
+* Works for Ruby 2.x
 * Small and simple
 * Strong test coverage
 
