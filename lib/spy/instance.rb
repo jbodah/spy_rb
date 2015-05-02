@@ -1,4 +1,3 @@
-require 'spy/instance/filters/with_args'
 require 'spy/instance/filters/when'
 require 'spy/instance/strategy'
 
