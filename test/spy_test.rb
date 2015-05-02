@@ -144,12 +144,6 @@ class SpyTest < Minitest::Spec
 
   describe 'any_instance' do
     describe 'Spy.on_any_instance' do
-      describe 'an instance' do
-        it 'throws an exception' do
-          skip
-        end
-      end
-
       # Wrapping
       [
         { name: 'a class and a class-owned method',   to_spy: Proc.new { TestClass },   msg: :class_owned_method },
