@@ -6,7 +6,7 @@ require 'spy/instance/strategy'
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    attr_reader :original, :spied, :strategy, :call_count, :visibility
+    attr_reader :original, :spied, :strategy, :call_count, :visibility, :call_history
 
     def initialize(spied, original)
       @spied = spied
@@ -14,7 +14,17 @@ module Spy
       @visibility = extract_visibility
       @conditional_filters = []
       @call_count = 0
+      @call_history = []
       @strategy = Strategy.factory_build(self)
+    end
+
+    class MethodCall
+      attr_reader :context, :args
+
+      def initialize(context, *args)
+        @context = context
+        @args = args
+      end
     end
 
     # The API we expose to consumers. This is the module you'll
@@ -68,6 +78,7 @@ module Spy
       def call(context, *args)
         if @conditional_filters.all? {|f| f.call(*args)}
           @call_count += 1
+          @call_history << MethodCall.new(context, *args)
         end
 
         if original.is_a?(UnboundMethod)
