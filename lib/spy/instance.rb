@@ -1,4 +1,3 @@
-require 'spy/instance/filters/when'
 require 'spy/instance/strategy'
 
 # An instance of a spied method
@@ -7,14 +6,13 @@ require 'spy/instance/strategy'
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    # TODO: Do we still need all of these to be public?
     attr_reader :original, :spied, :strategy, :call_count, :visibility
 
     def initialize(spied, original)
       @spied = spied
       @original = original
       @visibility = extract_visibility
-      @before_filters = []
+      @conditional_filters = []
       @call_count = 0
       @strategy = Strategy.factory_build(self)
     end
@@ -33,8 +31,19 @@ module Spy
       end
 
       def when(&block)
-        add_before_filter Filters::When.new(block)
+        @conditional_filters << block
+        self
       end
+
+      #def before(&block)
+        #@before_filters << block
+        #self
+      #end
+
+      #def after(&block)
+        #@after_filters << block
+        #self
+      #end
     end
 
     # The API we expose internally to our collaborators
@@ -57,7 +66,10 @@ module Spy
       # Context is required for calling UnboundMethods such as
       # instance methods defined on a Class
       def call(context, *args)
-        before_call(*args)
+        if @conditional_filters.all? {|f| f.call(*args)}
+          @call_count += 1
+        end
+
         if original.is_a?(UnboundMethod)
           original.bind(context).call(*args)
         else
@@ -70,15 +82,6 @@ module Spy
     include ExternalAPI
 
     private
-
-    def before_call(*args)
-      @call_count += 1 if @before_filters.all? {|f| f.before_call(*args)}
-    end
-
-    def add_before_filter(filter)
-      @before_filters << filter
-      self
-    end
 
     def extract_visibility
       owner = @original.owner
