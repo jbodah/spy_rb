@@ -2,23 +2,22 @@ require 'spy/core'
 
 module Spy
   module API
-    # Initializes a new spy instance for the method
+    # Spies on calls to a method made on an object
     #
-    # With two args:
-    # @param receiver - the receiver of the message you want to spy on
-    # @param msg - the message passed to the receiver that you want to spy on
-    def on(*args)
-      case args.length
-      when 2
-        spied, msg = *args
-        return core.add_spy(spied, spied.method(msg))
-      end
-      raise ArgumentError
+    # @param target - the object you want to spy on
+    # @param msg - the name of the method to spy on
+    def on(target, msg)
+      core.add_spy(target, target.method(msg))
     end
 
-    # TODO docs
-    def on_any_instance(spied, msg)
-      core.add_spy(spied, spied.instance_method(msg))
+    # Spies on calls to a method made on any instance of some class or module
+    #
+    # @param target - class or module to spy on
+    # @param msg - name of the method to spy on
+    # @returns [Spy::Instance]
+    def on_any_instance(target, msg)
+      raise ArgumentError unless target.respond_to?(:instance_method)
+      core.add_spy(target, target.instance_method(msg))
     end
 
     # Stops spying on the method and restores its original functionality
@@ -36,15 +35,16 @@ module Spy
     def restore(*args)
       case args.length
       when 1
-        return core.remove_all_spies if args.first == :all
+        core.remove_all_spies if args.first == :all
       when 2
-        spied, msg = *args
-        return core.remove_spy(spied, spied.method(msg))
+        target, msg = *args
+        core.remove_spy(target, target.method(msg))
       when 3
-        spied, msg, method_type = *args
-        return core.remove_spy(spied, spied.send(method_type, msg))
+        target, msg, method_type = *args
+        core.remove_spy(target, target.send(method_type, msg))
+      else
+        raise ArgumentError
       end
-      raise ArgumentError
     end
 
     private

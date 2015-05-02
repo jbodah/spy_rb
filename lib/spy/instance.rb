@@ -15,6 +15,7 @@ module Spy
       @conditional_filters = []
       @before_callbacks = []
       @after_callbacks = []
+      @around_procs = []
       @call_count = 0
       @call_history = []
       @strategy = Strategy.factory_build(self)
@@ -44,6 +45,13 @@ module Spy
 
       def when(&block)
         @conditional_filters << block
+        self
+      end
+
+      # Expect block to yield. Call the rest of the chain
+      # when it does
+      def wrap(&block)
+        @around_procs << block
         self
       end
 
@@ -82,11 +90,23 @@ module Spy
 
         if is_active
           @before_callbacks.each {|f| f.call(*args)}
-          @call_count += 1
-          @call_history << MethodCall.new(context, *args)
         end
 
-        result = call_original(context, *args)
+        result = if @around_procs
+                   # Procify the original call
+                   original_proc = Proc.new do
+                     track_call(context, *args) if is_active
+                     call_original(context, *args)
+                   end
+
+                   # Keep wrapping the original proc with each around_proc
+                   @around_procs.reduce(original_proc) do |p, wrapper|
+                     Proc.new { wrapper.call context, *args, &p }
+                   end.call
+                 else
+                   track_call(context, *args) if is_active
+                   call_original(context, *args)
+                 end
 
         if is_active
           @after_callbacks.each {|f| f.call(*args)}
@@ -100,6 +120,11 @@ module Spy
     include ExternalAPI
 
     private
+
+    def track_call(context, *args)
+      @call_count += 1
+      @call_history << MethodCall.new(context, *args)
+    end
 
     def call_original(context, *args)
       if original.is_a?(UnboundMethod)

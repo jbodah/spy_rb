@@ -145,8 +145,11 @@ class SpyTest < Minitest::Spec
   describe 'any_instance' do
     describe 'Spy.on_any_instance' do
       describe 'an instance' do
-        it 'throws an exception' do
-          skip
+        it 'throws an ArgumentError' do
+          obj = Object.new
+          assert_raises ArgumentError do
+            Spy.on_any_instance(obj, :hello)
+          end
         end
       end
 
