@@ -58,7 +58,6 @@ class LegacySpyTest < Minitest::Spec
       end
 
       it 'only tracks the spied instance' do
-        skip 'todo'
         obj = LegacyFakeClass.new
         spy = Spy.on(obj, :some_method)
         obj.some_method
@@ -300,12 +299,6 @@ class LegacySpyTest < Minitest::Spec
         Spy.on(LegacyFakeClass, :multi_args).when {|one, two| sum = one + two}
         LegacyFakeClass.multi_args(1, 2, 3)
         assert sum == 3
-      end
-    end
-
-    describe '.then' do
-      it 'calls it when the method passes all spy conditions' do
-        skip
       end
     end
   end
