@@ -13,6 +13,8 @@ module Spy
       @original = original
       @visibility = extract_visibility
       @conditional_filters = []
+      @before_callbacks = []
+      @after_callbacks = []
       @call_count = 0
       @call_history = []
       @strategy = Strategy.factory_build(self)
@@ -45,15 +47,15 @@ module Spy
         self
       end
 
-      #def before(&block)
-        #@before_filters << block
-        #self
-      #end
+      def before(&block)
+        @before_callbacks << block
+        self
+      end
 
-      #def after(&block)
-        #@after_filters << block
-        #self
-      #end
+      def after(&block)
+        @after_callbacks << block
+        self
+      end
     end
 
     # The API we expose internally to our collaborators
@@ -76,16 +78,21 @@ module Spy
       # Context is required for calling UnboundMethods such as
       # instance methods defined on a Class
       def call(context, *args)
-        if @conditional_filters.all? {|f| f.call(*args)}
+        is_active = @conditional_filters.all? {|f| f.call(*args)}
+
+        if is_active
+          @before_callbacks.each {|f| f.call(*args)}
           @call_count += 1
           @call_history << MethodCall.new(context, *args)
         end
 
-        if original.is_a?(UnboundMethod)
-          original.bind(context).call(*args)
-        else
-          original.call(*args)
+        result = call_original(context, *args)
+
+        if is_active
+          @after_callbacks.each {|f| f.call(*args)}
         end
+
+        result
       end
     end
 
@@ -93,6 +100,14 @@ module Spy
     include ExternalAPI
 
     private
+
+    def call_original(context, *args)
+      if original.is_a?(UnboundMethod)
+        original.bind(context).call(*args)
+      else
+        original.call(*args)
+      end
+    end
 
     def extract_visibility
       owner = @original.owner
