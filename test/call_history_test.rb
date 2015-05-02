@@ -26,5 +26,16 @@ class CallHistoryTest < Minitest::Spec
       assert_equal arr,   spy.call_history[1].context
       assert_equal ['b'], spy.call_history[1].args
     end
+
+    it 'contains the result' do
+      obj = Object.new
+      obj.instance_eval { define_singleton_method :add, Proc.new { |a,b| a + b }}
+      spy = Spy.on(obj, :add)
+      obj.add(2, 2)
+      obj.add(3, 3)
+      assert_equal 2, spy.call_history.size
+      assert_equal 4, spy.call_history[0].result
+      assert_equal 6, spy.call_history[1].result
+    end
   end
 end

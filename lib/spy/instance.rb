@@ -23,6 +23,7 @@ module Spy
 
     class MethodCall
       attr_reader :context, :args
+      attr_accessor :result
 
       def initialize(context, *args)
         @context = context
@@ -92,21 +93,23 @@ module Spy
           @before_callbacks.each {|f| f.call(*args)}
         end
 
-        result = if @around_procs
-                   # Procify the original call
-                   original_proc = Proc.new do
-                     track_call(context, *args) if is_active
-                     call_original(context, *args)
-                   end
+        if @around_procs.any?
+          # Procify the original call
+          original_proc = Proc.new do
+            record = track_call(context, *args) if is_active
+            result = call_original(context, *args)
+            record.result = result if is_active
+          end
 
-                   # Keep wrapping the original proc with each around_proc
-                   @around_procs.reduce(original_proc) do |p, wrapper|
-                     Proc.new { wrapper.call context, *args, &p }
-                   end.call
-                 else
-                   track_call(context, *args) if is_active
-                   call_original(context, *args)
-                 end
+          # Keep wrapping the original proc with each around_proc
+          @around_procs.reduce(original_proc) do |p, wrapper|
+            Proc.new { wrapper.call context, *args, &p }
+          end.call
+        else
+          record = track_call(context, *args) if is_active
+          result = call_original(context, *args)
+          record.result = result if is_active
+        end
 
         if is_active
           @after_callbacks.each {|f| f.call(*args)}
@@ -114,25 +117,29 @@ module Spy
 
         result
       end
+
+      private
+
+      def track_call(context, *args)
+        @call_count += 1
+        record = MethodCall.new(context, *args)
+        @call_history << record
+        record
+      end
+
+      def call_original(context, *args)
+        if original.is_a?(UnboundMethod)
+          original.bind(context).call(*args)
+        else
+          original.call(*args)
+        end
+      end
     end
 
     include InternalAPI
     include ExternalAPI
 
     private
-
-    def track_call(context, *args)
-      @call_count += 1
-      @call_history << MethodCall.new(context, *args)
-    end
-
-    def call_original(context, *args)
-      if original.is_a?(UnboundMethod)
-        original.bind(context).call(*args)
-      else
-        original.call(*args)
-      end
-    end
 
     def extract_visibility
       owner = @original.owner
