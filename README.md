@@ -17,7 +17,7 @@ Spy brings everything that's great about Sinon.JS to Ruby. Mocking frameworks wo
 * Works for Ruby 1.9.3 & 2.x
 * Small and simple
 * Strong test coverage
-* No global state or alias method pollution
+* No alias method pollution
 * No dependencies!
 
 ## Install
