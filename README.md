@@ -2,6 +2,7 @@
 
 [![Travis Status](https://travis-ci.org/jbodah/spy_rb.svg?branch=master)](https://travis-ci.org/jbodah/spy_rb)
 [![Coverage Status](https://img.shields.io/coveralls/jbodah/spy_rb.svg)](https://coveralls.io/r/jbodah/spy_rb)
+[![Code Climate](https://codeclimate.com/github/jbodah/spy_rb/badges/gpa.svg)](https://codeclimate.com/github/jbodah/spy_rb)
 
 SinonJS-style Test Spies for Ruby
 
