@@ -29,6 +29,8 @@ gem install spy_rb
 
 ## Usage
 
+Please see [Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) for the full API that the `Spy` constant supports. Also take a look at [Spy::Instance](https://github.com/jbodah/spy_rb/blob/master/lib/spy/instance.rb) for the full API that an individual `Spy::Instance` (which is returned from methods like `Spy.on`) supports. 
+
 ```ruby
 require 'spy'
 
