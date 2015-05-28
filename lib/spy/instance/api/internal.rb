@@ -18,11 +18,11 @@ module Spy
           end
         end
 
-        # Call the spied method using the given context and arguments.
+        # Call the spied method using the given receiver and arguments.
         #
-        # Context is required for calling UnboundMethods such as
+        # receiver is required to allow calling of UnboundMethods such as
         # instance methods defined on a Class
-        def call(context, *args)
+        def call(receiver, *args)
           is_active = @conditional_filters.all? {|f| f.call(*args)}
 
           if is_active
@@ -32,18 +32,18 @@ module Spy
           if @around_procs.any?
             # Procify the original call
             original_proc = Proc.new do
-              record = track_call(context, *args) if is_active
-              result = call_original(context, *args)
+              record = track_call(receiver, *args) if is_active
+              result = call_original(receiver, *args)
               record.result = result if is_active
             end
 
             # Keep wrapping the original proc with each around_proc
             @around_procs.reduce(original_proc) do |p, wrapper|
-              Proc.new { wrapper.call context, *args, &p }
+              Proc.new { wrapper.call receiver, *args, &p }
             end.call
           else
-            record = track_call(context, *args) if is_active
-            result = call_original(context, *args)
+            record = track_call(receiver, *args) if is_active
+            result = call_original(receiver, *args)
             record.result = result if is_active
           end
 
@@ -56,15 +56,15 @@ module Spy
 
         private
 
-        def track_call(context, *args)
-          record = Spy::MethodCall.new(context, *args)
+        def track_call(receiver, *args)
+          record = Spy::MethodCall.new(receiver, *args)
           @call_history << record
           record
         end
 
-        def call_original(context, *args)
+        def call_original(receiver, *args)
           if original.is_a?(UnboundMethod)
-            original.bind(context).call(*args)
+            original.bind(receiver).call(*args)
           else
             original.call(*args)
           end

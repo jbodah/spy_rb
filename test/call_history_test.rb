@@ -21,9 +21,9 @@ class CallHistoryTest < Minitest::Spec
       arr << 'a'
       arr << 'b'
       assert_equal 2,     spy.call_history.size
-      assert_equal arr,   spy.call_history[0].context
+      assert_equal arr,   spy.call_history[0].receiver
       assert_equal ['a'], spy.call_history[0].args
-      assert_equal arr,   spy.call_history[1].context
+      assert_equal arr,   spy.call_history[1].receiver
       assert_equal ['b'], spy.call_history[1].args
     end
 

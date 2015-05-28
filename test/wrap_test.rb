@@ -19,8 +19,8 @@ class WrapTest < Minitest::Spec
         # yield before
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        spy.wrap do |context, &block|
-          context.string << 'a'
+        spy.wrap do |receiver, &block|
+          receiver.string << 'a'
           block.call
         end
 
@@ -32,9 +32,9 @@ class WrapTest < Minitest::Spec
         # yield after
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        spy.wrap do |context, &block|
+        spy.wrap do |receiver, &block|
           block.call
-          context.string << 'a'
+          receiver.string << 'a'
         end
 
         spied.append('b')
