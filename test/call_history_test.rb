@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class CallHistoryTest < Minitest::Spec
-  describe 'Spy#call_history' do
+  describe 'Spy::Instance#call_history' do
     it 'is empty when no calls have been made' do
       arr = Array.new
       spy = Spy.on(arr, :<<)

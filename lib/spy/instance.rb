@@ -27,6 +27,10 @@ module Spy
       @call_history.size
     end
 
+    def replay_all
+      @call_history.map(&:replay)
+    end
+
     def start
       @strategy.apply
       self
