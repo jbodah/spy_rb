@@ -37,5 +37,37 @@ class CallHistoryTest < Minitest::Spec
       assert_equal 4, spy.call_history[0].result
       assert_equal 6, spy.call_history[1].result
     end
+
+    it 'records any block that the call was passed (on captured blocks)' do
+      obj = Object.new
+      obj.instance_eval do
+        def perform(&block)
+          block.call
+        end
+      end
+      spy = Spy.on(obj, :perform)
+
+      sum = 0
+      obj.perform { sum += 1 }
+      assert_equal sum, 1, 'expected proc to be called on spied method'
+      spy.call_history[0].block.call
+      assert_equal sum, 2, 'expected Spy::MethodCall#block.call to call original block'
+    end
+
+    it 'records any block that the call was passed (on yielded blocks)' do
+      obj = Object.new
+      obj.instance_eval do
+        def perform
+          yield
+        end
+      end
+      spy = Spy.on(obj, :perform)
+
+      sum = 0
+      obj.perform { sum += 1 }
+      assert_equal sum, 1, 'expected proc to be called on spied method'
+      spy.call_history[0].block.call
+      assert_equal sum, 2, 'expected Spy::MethodCall#block.call to call original block'
+    end
   end
 end
