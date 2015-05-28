@@ -69,5 +69,13 @@ class CallHistoryTest < Minitest::Spec
       spy.call_history[0].block.call
       assert_equal sum, 2, 'expected Spy::MethodCall#block.call to call original block'
     end
+
+    it 'records the method name' do
+      obj = Object.new
+      obj.instance_eval { define_singleton_method :perform, Proc.new {} }
+      spy = Spy.on(obj, :perform)
+      obj.perform
+      assert_equal :perform, spy.call_history[0].name
+    end
   end
 end

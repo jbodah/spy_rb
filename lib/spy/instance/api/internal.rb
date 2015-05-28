@@ -57,7 +57,7 @@ module Spy
         private
 
         def track_call(receiver, *args, &block)
-          record = Spy::MethodCall.new(receiver, *args, &block)
+          record = Spy::MethodCall.new(original.name, receiver, *args, &block)
           @call_history << record
           record
         end
