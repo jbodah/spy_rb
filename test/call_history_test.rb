@@ -1,6 +1,10 @@
 require 'test_helper'
 
 class CallHistoryTest < Minitest::Spec
+  after do
+    Spy.restore(:all)
+  end
+
   describe 'Spy::Instance#call_history' do
     it 'is empty when no calls have been made' do
       arr = Array.new
@@ -76,6 +80,26 @@ class CallHistoryTest < Minitest::Spec
       spy = Spy.on(obj, :perform)
       obj.perform
       assert_equal :perform, spy.call_history[0].name
+    end
+
+    it 'deep copies the arguments' do
+      arr = [1, 2, 3]
+      obj = Object.new
+      obj.instance_eval { def self.accept(arg); end }
+      spy = Spy.on(obj, :accept)
+      obj.accept(arr)
+      arr.shift
+      assert_equal [1, 2, 3], spy.call_history[0].args[0]
+    end
+
+    it 'deep copies the result' do
+      arr = [1, 2, 3]
+      obj = Object.new
+      obj.instance_eval { def self.accept(arg); arg; end }
+      spy = Spy.on(obj, :accept)
+      obj.accept(arr)
+      arr.shift
+      assert_equal [1, 2, 3], spy.call_history[0].result
     end
   end
 end
