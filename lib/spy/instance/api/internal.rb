@@ -57,7 +57,7 @@ module Spy
         private
 
         def track_call(receiver, *args, &block)
-          replayer = -> () { call_original(receiver, *args, &block) }
+          replayer = proc { call_original(receiver, *args, &block) }
           record = Spy::MethodCall.new(replayer, original.name, receiver, *args, &block)
           @call_history << record
           record

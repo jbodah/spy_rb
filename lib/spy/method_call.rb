@@ -10,7 +10,7 @@ module Spy
       @args = args
 
       if block_given?
-        @block = -> () { receiver.instance_eval &Proc.new }
+        @block = proc { receiver.instance_eval &Proc.new }
       end
     end
 
