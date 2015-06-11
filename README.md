@@ -58,6 +58,13 @@ orange.to_s
 s.call_count
 #=> 2
 
+# Spied methods respect visibility
+Object.private_methods.include?(:fork)
+#=> true
+Spy.on(Object, :fork)
+Object.fork
+#=> NoMethodError: private method `fork' called for Object:Class
+
 # Spy will let you know if you're doing something wrong too
 Spy.on(Object, :doesnt_exist)
 #=> NameError: undefined method `doesnt_exist' for class `Class'
