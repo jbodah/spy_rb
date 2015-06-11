@@ -57,6 +57,10 @@ orange = Object.new
 orange.to_s
 s.call_count
 #=> 2
+
+# Spy will let you know if you're doing something wrong too
+Spy.on(Object, :doesnt_exist)
+#=> NameError: undefined method `doesnt_exist' for class `Class'
 ```
 
 When you're all finished you'll want to restore your methods to clean up the spies:
