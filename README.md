@@ -164,7 +164,8 @@ fruit.eat(:on_a_boat)
 spy.call_history
 #=> [
   #<Spy::MethodCall:0x007fd1db0dc6e0 @replayer=#<Proc:0x007fd1db0dc730@/Users/Bodah/.rbenv/versions/2.1.3/lib/ruby/gems/2.1.0/gems/spy_rb-0.3.0/lib/spy/instance/api/internal.rb:60>, @name=:eat, @receiver=#<Fruit:0x007fd1db0efdd0>, @args=[:like_a_boss], @result=nil>,
-  #<Spy::MethodCall:0x007fd1db033c70 @replayer=#<Proc:0x007fd1db033cc0@/Users/Bodah/.rbenv/versions/2.1.3/lib/ruby/gems/2.1.0/gems/spy_rb-0.3.0/lib/spy/instance/api/internal.rb:60>, @name=:eat, @receiver=#<Fruit:0x007fd1db0efdd0>, @args=[:on_a_boat], @result=nil>]
+  #<Spy::MethodCall:0x007fd1db033c70 @replayer=#<Proc:0x007fd1db033cc0@/Users/Bodah/.rbenv/versions/2.1.3/lib/ruby/gems/2.1.0/gems/spy_rb-0.3.0/lib/spy/instance/api/internal.rb:60>, @name=:eat, @receiver=#<Fruit:0x007fd1db0efdd0>, @args=[:on_a_boat], @result=nil>
+]
 ```
 
 `Spy::MethodCall` has a bunch of useful methods like `#receiver`, `#args`, `#block`, `#name`, and `#result`. Right now `Spy::MethodCall` does not deep copy args or results, so be careful!
