@@ -30,57 +30,48 @@ gem install spy_rb
 
 ## Usage
 
-This documentation is a work in progress. For now, please see [Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) for the full API that the `Spy` constant supports. Also take a look at [Spy::Instance](https://github.com/jbodah/spy_rb/blob/master/lib/spy/instance.rb) for the full API that an individual `Spy::Instance` (which is returned from methods like `Spy.on`) supports. 
+[Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) defines the top-level interface for creating spies and for interacting with them on a global scale.
 
-```ruby
+You can use it to create spies in a variety of ways:
+
+```rb
 require 'spy'
 
-class TestClass
-  def push(arg)
-    (@array ||= []) << arg
-  end
-end
+# Spy on singleton or bound methods
+obj = Object.new
+s = Spy.on(obj, :to_s)
+obj.to_s
+s.call_count
+#=> 1
 
-# Spy on singleton methods
-# Query for call count
-object = TestClass.new
-spy = Spy.on(object, :push)
-object.push 'hello'
-puts spy.call_count
-# => 1
+s = Spy.on(Object, :to_s)
+Object.to_s
+s.call_count
+#=> 1
 
-# Restore that method
-# Call count doesn't change
-Spy.restore(object, :push)
-object.push 'goodbye'
-puts spy.call_count
-# => 1
+# Spy on instance methods
+s = Spy.on_any_instance(Object, :to_s)
+apple = Object.new
+apple.to_s
+orange = Object.new
+orange.to_s
+s.call_count
+#=> 2
+```
 
-# Stop spying on all methods
-Spy.restore(:all)
+When you're all finished you'll want to restore your methods to clean up the spies:
 
-# Spy on any instance of a class
-spy = Spy.on_any_instance(TestClass, :push)
-a = TestClass.new
-a.push 'apple'
-b = TestClass.new
-b.push 'orange'
-puts spy.call_count
-# => 2
+```rb
+# Restore singleton/bound method
+s = Spy.on(Object, :to_s)
+Spy.restore(Object, :to_s)
 
-# Restore a spied instance method
-Spy.restore(TestClass, :push)
+# Restore instance method
+s = Spy.on_any_instance(Object, :to_s)
+Spy.restore(Object, :to_s, :instance)
 
-# Only increment call count when an expression returns true
-a = TestClass.new
-spy = Spy.on(a, :push).when {|to_push| to_push == 'apple'}
-a.push 'pear'
-puts spy.call_count
-# => 0
-a.push 'apple'
-puts spy.call_count
-# => 1
-
+# Global restore
+s = Spy.on(Object, :to_s)
 Spy.restore(:all)
 ```
 
@@ -88,14 +79,128 @@ If using in the context of a test suite, you may want to patch a `Spy.restore(:a
 
 Ex:
 ```ruby
-ActiveSupport::TestCase.class_eval do
+class ActiveSupport::TestCase
   teardown do
     Spy.restore(:all)
   end
 end
 ```
 
-## Deploying
+Once you've created a spy instance, then there are a variety of ways to interact with that spy. See [Spy::Instance](https://github.com/jbodah/spy_rb/tree/master/lib/spy/instance.rb) for the full list.
+
+For these example we'll use the `Fruit` class because, seriously, who doesn't love fruit:
+
+```rb
+class Fruit
+  def eat(adj)
+    puts "you take a bite #{adj}"
+  end
+end
+```
+
+`Spy::Instance#call_count` will tell you how many times the spied method was called:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+fruit.eat(:slowly)
+spy.call_count
+#=> 1
+fruit.eat(:quickly)
+spy.call_count
+#=> 2
+```
+
+`Spy::Instance#when` lets you spy conditionally:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+spy.when {|adj| adj == :quickly}
+fruit.eat(:slowly)
+spy.call_count
+#=> 0
+fruit.eat(:quickly)
+spy.call_count
+#=> 1
+```
+
+`Spy::Instance#before` and `Spy::Instance#after` give you callbacks for your spy:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+spy.before { puts 'you wash your hands' }
+spy.after { puts 'you rejoice in your triumph' }
+fruit.eat(:happily)
+#=> you wash your hands
+#=> you take a bite happily
+#=> you rejoice in your triumph
+
+# #before and #after can both accept arguments just like #when
+```
+
+`Spy::Instance#wrap` allows you to do so more complex things. Unlike `#before` and `#after` your wrapping block will also be passed the receiver as well as the args. Be sure to call the original block though! You don't have to worry about passing args to the original. Those are wrapped up for you; you just need to `#call` it.
+
+```rb
+require 'benchmark'
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+spy.wrap do |fruit, *args, &original|
+  puts Benchmark.measure { original.call }
+end
+fruit.eat(:hungrily)
+#=> you take a bite hungrily
+#=> 0.000000   0.000000   0.000000 (  0.000039)
+```
+
+`Spy::Instance#call_history` keeps track of all of your calls for you:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+fruit.eat(:like_a_boss)
+fruit.eat(:on_a_boat)
+spy.call_history
+#=> [
+  #<Spy::MethodCall:0x007fd1db0dc6e0 @replayer=#<Proc:0x007fd1db0dc730@/Users/Bodah/.rbenv/versions/2.1.3/lib/ruby/gems/2.1.0/gems/spy_rb-0.3.0/lib/spy/instance/api/internal.rb:60>, @name=:eat, @receiver=#<Fruit:0x007fd1db0efdd0>, @args=[:like_a_boss], @result=nil>,
+  #<Spy::MethodCall:0x007fd1db033c70 @replayer=#<Proc:0x007fd1db033cc0@/Users/Bodah/.rbenv/versions/2.1.3/lib/ruby/gems/2.1.0/gems/spy_rb-0.3.0/lib/spy/instance/api/internal.rb:60>, @name=:eat, @receiver=#<Fruit:0x007fd1db0efdd0>, @args=[:on_a_boat], @result=nil>]
+```
+
+`Spy::MethodCall` has a bunch of useful methods like `#receiver`, `#args`, `#block`, `#name`, and `#result`. Right now `Spy::MethodCall` does not deep copy args or results, so be careful!
+
+`Spy::MethodCall` also has the experimental feature `#replay`:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+fruit.eat(:quickly)
+#=> you take a bite quickly
+spy.call_history[0].replay
+#=> you take a bite quickly
+spy.call_count
+#=> 1
+```
+
+Additionally, if you're adventurous you can give `Spy::Instance#replay_all` a shot:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+fruit.eat(:quickly)
+#=> you take a bite quickly
+fruit.eat(:slowly)
+#=> you take a bite slowly
+spy.call_count
+#=> 2
+spy.replay_all
+#=> you take a bite quickly
+#=> you take a bite slowly
+spy.call_count
+#=> 2
+```
+
+## Deploying (note to self)
 
 ```sh
 rake full_deploy TO=0.2.1
