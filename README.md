@@ -63,6 +63,7 @@ Spy.on(Object, :doesnt_exist)
 #=> NameError: undefined method `doesnt_exist' for class `Class'
 
 Spy.on(Object, :to_s)
+#=> #<Spy::Instance:0x007fd8e93e4da0 @spied=Object, @original=#<Method: Class(Module)#to_s>, @visibility=:public, @conditional_filters=[], @before_callbacks=[], @after_callbacks=[], @around_procs=[], @call_history=[], @strategy=#<Spy::Instance::Strategy::Intercept:0x007fd8e93e4af8 @spy=#<Spy::Instance:0x007fd8e93e4da0 ...>, @intercept_target=#<Class:Object>>>
 Spy.on(Object, :to_s)
 #=> Object: Spy::Errors::AlreadySpiedError
 ```
