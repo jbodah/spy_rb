@@ -32,28 +32,34 @@ gem install spy_rb
 
 [Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) defines the top-level interface for creating spies and for interacting with them on a global scale.
 
-You can use it to create spies in a variety of ways:
+You can use it to create spies in a variety of ways. For these example we'll use the `Fruit` class because, seriously, who doesn't love fruit:
 
 ```rb
+class Fruit
+  def eat(adj)
+    puts "you take a bite #{adj}"
+  end
+end
+
 require 'spy'
 
 # Spy on singleton or bound methods
-obj = Object.new
-s = Spy.on(obj, :to_s)
-obj.to_s
+fruit = Fruit.new
+s = Spy.on(fruit, :to_s)
+fruit.to_s
 s.call_count
 #=> 1
 
-s = Spy.on(Object, :to_s)
-Object.to_s
+s = Spy.on(Fruit, :to_s)
+Fruit.to_s
 s.call_count
 #=> 1
 
 # Spy on instance methods
-s = Spy.on_any_instance(Object, :to_s)
-apple = Object.new
+s = Spy.on_any_instance(Fruit, :to_s)
+apple = Fruit.new
 apple.to_s
-orange = Object.new
+orange = Fruit.new
 orange.to_s
 s.call_count
 #=> 2
@@ -69,10 +75,10 @@ Object.fork
 Spy.on(Object, :doesnt_exist)
 #=> NameError: undefined method `doesnt_exist' for class `Class'
 
-Spy.on(Object, :to_s)
-#=> #<Spy::Instance:0x007fd8e93e4da0 @spied=Object, @original=#<Method: Class(Module)#to_s>, @visibility=:public, @conditional_filters=[], @before_callbacks=[], @after_callbacks=[], @around_procs=[], @call_history=[], @strategy=#<Spy::Instance::Strategy::Intercept:0x007fd8e93e4af8 @spy=#<Spy::Instance:0x007fd8e93e4da0 ...>, @intercept_target=#<Class:Object>>>
-Spy.on(Object, :to_s)
-#=> Object: Spy::Errors::AlreadySpiedError
+Spy.on(Fruit, :to_s)
+=> #<Spy::Instance:0x007feb55affe18 @spied=Fruit, @original=#<Method: Class(Module)#to_s>, @visibility=:public, @conditional_filters=[], @before_callbacks=[], @after_callbacks=[], @around_procs=[], @call_history=[], @strategy=#<Spy::Instance::Strategy::Intercept:0x007feb55affc38 @spy=#<Spy::Instance:0x007feb55affe18 ...>, @intercept_target=#<Class:Fruit>>>
+Spy.on(Fruit, :to_s)
+#=> Spy::Errors::AlreadySpiedError: Spy::Errors::AlreadySpiedError
 ```
 
 When you're all finished you'll want to restore your methods to clean up the spies:
@@ -103,16 +109,6 @@ end
 ```
 
 Once you've created a spy instance, then there are a variety of ways to interact with that spy. See [Spy::Instance](https://github.com/jbodah/spy_rb/tree/master/lib/spy/instance.rb) for the full list.
-
-For these example we'll use the `Fruit` class because, seriously, who doesn't love fruit:
-
-```rb
-class Fruit
-  def eat(adj)
-    puts "you take a bite #{adj}"
-  end
-end
-```
 
 `Spy::Instance#call_count` will tell you how many times the spied method was called:
 
