@@ -4,23 +4,28 @@ require 'spy/errors'
 
 module Spy
   class Core
-    def spy_collection
-      @spy_collection ||= Collection.new
-    end
-
     def add_spy(spied, method)
+      if collection.include?(spied, method)
+        raise Errors::AlreadySpiedError
+      end
       spy = Instance.new(spied, method)
-      spy_collection << spy
+      collection.insert(spied, method, spy)
       spy.start
     end
 
     def remove_spy(spied, method)
-      spy = spy_collection.pop(method)
+      spy = collection.remove(spied, method)
       spy.stop
     end
 
     def remove_all_spies
-      spy_collection.remove_all { |spy| spy.stop }
+      collection.remove_all { |spy| spy.stop }
+    end
+
+    private
+
+    def collection
+      @collection ||= Collection.new
     end
   end
 end

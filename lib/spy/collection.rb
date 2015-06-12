@@ -1,52 +1,42 @@
+require 'spy/errors'
+require 'spy/collection/store'
 require 'spy/collection/entry'
 
 module Spy
+  # Responsible for error handling and mapping to Entry
   class Collection
-    include Enumerable
-
-    def initialize
-      @store = {}
+    def insert(spied, method, spy)
+      entry = Entry.new(spied, method, spy)
+      if store.include? entry
+        raise Errors::AlreadySpiedError
+      end
+      store.insert(entry)
     end
 
-    def insert(entry)
-      raise Errors::AlreadySpiedError if include?(entry)
-      @store[entry.key] = entry
+    def remove(spied, method)
+      entry = Entry.new(spied, method, nil)
+      if !store.include? entry
+        raise Errors::MethodNotSpiedError
+      end
+      store.remove(entry).spy
     end
 
-    def remove(entry)
-      raise Errors::MethodNotSpiedError unless include?(entry)
-      @store.delete(entry.key).value
-    end
-
-    # Removes each element from the collection and calls the block
-    # with each deleted element
     def remove_all
-      map {|e| yield remove(e)}
-    end
-
-    def each
-      @store.keys.each {|k| yield Entry.parse(k)}
-    end
-
-    # Add a slicker interface that abstracts away Collection::Entry
-    module SpyHelper
-      def <<(spy)
-        receiver = spy.original.is_a?(Method) ? spy.original.receiver : nil
-        name = spy.original.name
-        klass = spy.original.class
-        entry = Collection::Entry.new(receiver, name, klass)
-        entry.value = spy
-        insert entry
-      end
-
-      def pop(method)
-        receiver = method.is_a?(Method) ? method.receiver : nil
-        name = method.name
-        klass = method.class
-        remove Collection::Entry.new(receiver, name, klass)
+      store.map {|e| yield remove(e.spied, e.method)}
+      if !store.empty?
+        raise Errors::UnableToEmptySpyCollectionError
       end
     end
 
-    include SpyHelper
+    def include?(spied, method)
+      entry = Entry.new(spied, method)
+      store.include? entry
+    end
+
+    private
+
+    def store
+      @store ||= Store.new
+    end
   end
 end
