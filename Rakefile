@@ -20,6 +20,12 @@ task :build do
   system "gem build #{gemspec}"
 end
 
+desc 'install local gem'
+task :install_local do
+  gem = Dir.glob('*.gem').first
+  system "gem install #{gem} --local"
+end
+
 desc 'build gem and push it to rubygems'
 task :deploy => [:clean, :build] do
   gem = Dir.glob('*.gem').first
