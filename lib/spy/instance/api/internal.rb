@@ -29,6 +29,7 @@ module Spy
             @before_callbacks.each {|f| f.call(*args)}
           end
 
+          result = nil
           if @around_procs.any?
             # Procify the original call
             original_proc = Proc.new do

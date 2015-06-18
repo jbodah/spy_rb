@@ -58,6 +58,25 @@ class WrapTest < Minitest::Spec
         spied.append('b')
         assert_equal 0, spy.call_count
       end
+
+      it 'returns the original result' do
+        obj = Object.new.tap do |o|
+          o.instance_eval do
+            def hello
+              'hello'
+            end
+          end
+        end
+
+        s = Spy.on(obj, :hello)
+        s.wrap do |r, &block|
+          123
+          block.call
+          456
+        end
+
+        assert_equal 'hello', obj.hello
+      end
     end
   end
 end
