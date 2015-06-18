@@ -1,3 +1,4 @@
+require 'spy/version'
 require 'spy/api'
 
 module Spy
