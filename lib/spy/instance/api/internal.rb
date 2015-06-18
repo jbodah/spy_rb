@@ -23,6 +23,11 @@ module Spy
         # receiver is required to allow calling of UnboundMethods such as
         # instance methods defined on a Class
         def call(receiver, *args, &block)
+          # TODO - abstract the method call into an object and cache this in
+          #   method using an instance variable instead of a local variable.
+          #   This will let us be a bit more elegant about how we do before/after
+          #   callbacks. We can also merge MethodCall with this responsibility so
+          #   it isn't just a data struct
           is_active = @conditional_filters.all? {|f| f.call(*args)}
 
           if is_active
@@ -32,10 +37,9 @@ module Spy
           result = nil
           if @around_procs.any?
             # Procify the original call
+            # Still return the result from it
             original_proc = Proc.new do
-              record = track_call(receiver, *args, &block) if is_active
-              result = call_original(receiver, *args, &block)
-              record.result = result if is_active
+              result = call_and_record(is_active, receiver, *args, &block)
             end
 
             # Keep wrapping the original proc with each around_proc
@@ -43,9 +47,7 @@ module Spy
               Proc.new { wrapper.call receiver, *args, &p }
             end.call
           else
-            record = track_call(receiver, *args, &block) if is_active
-            result = call_original(receiver, *args, &block)
-            record.result = result if is_active
+            result = call_and_record(is_active, receiver, *args, &block)
           end
 
           if is_active
@@ -56,6 +58,13 @@ module Spy
         end
 
         private
+
+        def call_and_record(is_active, receiver, *args, &block)
+          record = track_call(receiver, *args, &block) if is_active
+          result = call_original(receiver, *args, &block)
+          record.result = result if is_active
+          result
+        end
 
         def track_call(receiver, *args, &block)
           replayer = proc { call_original(receiver, *args, &block) }
