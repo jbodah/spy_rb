@@ -30,40 +30,39 @@ module Spy
           #   it isn't just a data struct
           is_active = @conditional_filters.all? {|f| f.call(*args)}
 
-          if is_active
+          if !is_active
+            call_original(receiver, *args, &block)
+          else
             @before_callbacks.each {|f| f.call(*args)}
-          end
 
-          result = nil
-          if @around_procs.any?
-            # Procify the original call
-            # Still return the result from it
-            original_proc = Proc.new do
-              result = call_and_record(is_active, receiver, *args, &block)
+            if @around_procs.any?
+              # Procify the original call
+              # Still return the result from it
+              result = nil
+              original_proc = Proc.new do
+                result = call_and_record(receiver, *args, &block)
+              end
+
+              # Keep wrapping the original proc with each around_proc
+              @around_procs.reduce(original_proc) do |p, wrapper|
+                Proc.new { wrapper.call receiver, *args, &p }
+              end.call
+            else
+              result = call_and_record(receiver, *args, &block)
             end
 
-            # Keep wrapping the original proc with each around_proc
-            @around_procs.reduce(original_proc) do |p, wrapper|
-              Proc.new { wrapper.call receiver, *args, &p }
-            end.call
-          else
-            result = call_and_record(is_active, receiver, *args, &block)
-          end
-
-          if is_active
             @after_callbacks.each {|f| f.call(*args)}
-          end
 
-          result
+            result
+          end
         end
 
         private
 
-        def call_and_record(is_active, receiver, *args, &block)
-          record = track_call(receiver, *args, &block) if is_active
+        def call_and_record(receiver, *args, &block)
+          record = track_call(receiver, *args, &block)
           result = call_original(receiver, *args, &block)
-          record.result = result if is_active
-          result
+          record.result = result
         end
 
         def track_call(receiver, *args, &block)
