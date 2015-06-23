@@ -45,7 +45,7 @@ module Spy
 
               # Keep wrapping the original proc with each around_proc
               @around_procs.reduce(original_proc) do |p, wrapper|
-                Proc.new { wrapper.call receiver, *args, &p }
+                Proc.new { wrapper.call *args, &p }
               end.call
             else
               result = call_and_record(receiver, *args, &block)

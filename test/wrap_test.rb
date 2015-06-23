@@ -13,14 +13,14 @@ class WrapTest < Minitest::Spec
     end
   end
 
-  describe 'Spy#wrap' do
+  describe 'Spy::Instance#wrap' do
     describe 'followed by the method call' do
       it 'correctly wraps the call based on the block.call placement' do
         # yield before
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        spy.wrap do |receiver, &block|
-          receiver.string << 'a'
+        spy.wrap do |&block|
+          spied.string << 'a'
           block.call
         end
 
@@ -32,9 +32,9 @@ class WrapTest < Minitest::Spec
         # yield after
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        spy.wrap do |receiver, &block|
+        spy.wrap do |&block|
           block.call
-          receiver.string << 'a'
+          spied.string << 'a'
         end
 
         spied.append('b')
@@ -69,13 +69,23 @@ class WrapTest < Minitest::Spec
         end
 
         s = Spy.on(obj, :hello)
-        s.wrap do |r, &block|
+        s.wrap do |&block|
           123
           block.call
           456
         end
 
         assert_equal 'hello', obj.hello
+      end
+
+      it 'passes the args to the wrap block' do
+        obj = Object.new.tap {|o| o.instance_eval { def say(*args); end }}
+        s = Spy.on(obj, :say)
+        passed_args = [1, 2, 3]
+        s.wrap do |*args|
+          assert_equal passed_args, args
+        end
+        obj.say(*passed_args)
       end
     end
   end

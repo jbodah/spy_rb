@@ -152,13 +152,14 @@ fruit.eat(:happily)
 # #before and #after can both accept arguments just like #when
 ```
 
-`Spy::Instance#wrap` allows you to do so more complex things. Unlike `#before` and `#after` your wrapping block will also be passed the receiver as well as the args. Be sure to call the original block though! You don't have to worry about passing args to the original. Those are wrapped up for you; you just need to `#call` it.
+`Spy::Instance#wrap` allows you to do so more complex things. Be sure to call the original block though! You don't have to worry about passing args to the original.
+Those are wrapped up for you; you just need to `#call` it.
 
 ```rb
 require 'benchmark'
 fruit = Fruit.new
 spy = Spy.on(fruit, :eat)
-spy.wrap do |fruit, *args, &original|
+spy.wrap do |*args, &original|
   puts Benchmark.measure { original.call }
 end
 fruit.eat(:hungrily)
