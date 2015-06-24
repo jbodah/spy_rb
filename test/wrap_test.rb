@@ -11,6 +11,11 @@ class WrapTest < Minitest::Spec
     def append(char)
       @string << char
     end
+
+    def recursive_add(original, n)
+      return original if n == 0
+      recursive_add(original, n - 1) + 1
+    end
   end
 
   describe 'Spy::Instance#wrap' do
@@ -86,6 +91,16 @@ class WrapTest < Minitest::Spec
           assert_equal passed_args, args
         end
         obj.say(*passed_args)
+      end
+
+      it 'works with recursive methods' do
+        r = TestClass.new
+        spy = Spy.on(r, :recursive_add)
+
+        spy.wrap do |*args, &block|
+          block.call
+        end
+        assert_equal 4, r.recursive_add(2,2)
       end
     end
   end
