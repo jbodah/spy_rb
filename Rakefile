@@ -45,7 +45,7 @@ task :change_version do
   raise "Tag '#{ENV['TO']}' already exists!" unless `git tag -l $TO`.empty?
 
   puts "Updating version.rb to '#{ENV['TO']}'"
-  version_file = 'lib/spy_rb/version.rb'
+  version_file = 'lib/spy/version.rb'
   before_text = File.read(version_file)
   text = before_text.gsub(/[\d\.]+/, ENV['TO'])
   raise "Aborting: Version didn't change" if text == before_text
