@@ -28,12 +28,12 @@ module Spy
           #   This will let us be a bit more elegant about how we do before/after
           #   callbacks. We can also merge MethodCall with this responsibility so
           #   it isn't just a data struct
-          is_active = @conditional_filters.all? {|f| f.call(*args)}
+          is_active = @conditional_filters.all? {|f| f.call(receiver, *args)}
 
           if !is_active
             call_original(receiver, *args, &block)
           else
-            @before_callbacks.each {|f| f.call(*args)}
+            @before_callbacks.each {|f| f.call(receiver, *args)}
 
             if @around_procs.any?
               # Procify the original call
@@ -45,13 +45,13 @@ module Spy
 
               # Keep wrapping the original proc with each around_proc
               @around_procs.reduce(original_proc) do |p, wrapper|
-                Proc.new { wrapper.call *args, &p }
+                Proc.new { wrapper.call receiver, *args, &p }
               end.call
             else
               result = call_and_record(receiver, *args, &block)
             end
 
-            @after_callbacks.each {|f| f.call(*args)}
+            @after_callbacks.each {|f| f.call(receiver, *args)}
 
             result
           end

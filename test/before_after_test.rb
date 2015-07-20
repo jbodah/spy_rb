@@ -10,11 +10,14 @@ class BeforeAfterTest < Minitest::Spec
       assert_equal ['b', 'a'], arr
     end
 
-    it 'is passed the the args of the call' do
+    it 'is passed the receiver and the args of the call' do
       arr = []
       spy = Spy.on(arr, :<<)
       called_args = nil
-      spy.before {|*args| called_args = *args}
+      spy.before do |receiver, *args|
+        assert_equal arr, receiver
+        called_args = *args
+      end
       arr << 'a'
       assert_equal ['a'], called_args
     end
@@ -29,11 +32,14 @@ class BeforeAfterTest < Minitest::Spec
       assert_equal ['a', 'b'], arr
     end
 
-    it 'is passed the the args of the call' do
+    it 'is passed the receiver and the args of the call' do
       arr = []
       spy = Spy.on(arr, :<<)
       called_args = nil
-      spy.after {|*args| called_args = *args}
+      spy.after do |receiver, *args|
+        assert_equal arr, receiver
+        called_args = *args
+      end
       arr << 'a'
       assert_equal ['a'], called_args
     end

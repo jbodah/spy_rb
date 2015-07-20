@@ -287,16 +287,16 @@ class LegacySpyTest < Minitest::Spec
         assert spy.call_count == 1
       end
 
-      it 'passes all of the call arguments to the block' do
+      it 'passes the receiver and all of the call arguments to the block' do
         arg_count = 0
         Spy.on(LegacyFakeClass, :multi_args).when {|*args| arg_count = args.size}
         LegacyFakeClass.multi_args(1, 2, 3)
-        assert arg_count == 3
+        assert arg_count == 4
       end
 
       it 'allows the user to only capture some args' do
         sum = 0
-        Spy.on(LegacyFakeClass, :multi_args).when {|one, two| sum = one + two}
+        Spy.on(LegacyFakeClass, :multi_args).when {|receiver, one, two| sum = one + two}
         LegacyFakeClass.multi_args(1, 2, 3)
         assert sum == 3
       end
