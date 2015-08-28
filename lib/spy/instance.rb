@@ -23,6 +23,10 @@ module Spy
       @strategy = Strategy.factory_build(self)
     end
 
+    def name
+      @original.name
+    end
+
     def call_count
       @call_history.size
     end
