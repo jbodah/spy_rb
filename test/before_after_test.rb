@@ -67,5 +67,17 @@ class BeforeAfterTest < Minitest::Spec
 
       assert yielded.is_a? Spy::MethodCall
     end
+
+    it 'has the Spy::MethodCall result field filled in' do
+      obj = []
+      spy = Spy.on(obj, :<<)
+
+      yielded = nil
+      spy.after { |mc| yielded = mc }
+
+      obj << "hello"
+
+      assert_equal obj, yielded.result
+    end
   end
 end

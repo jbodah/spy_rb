@@ -115,6 +115,18 @@ class WrapTest < Minitest::Spec
 
         assert yielded.is_a? Spy::MethodCall
       end
+
+      it 'fills in the Spy::MethodCall result field after yielding execution back to the spied method' do
+        obj = []
+        spy = Spy.on(obj, :<<)
+
+        yielded = nil
+        spy.wrap { |mc, &block| block.call; yielded = mc }
+
+        obj << "hello"
+
+        assert_equal obj, yielded.result
+      end
     end
   end
 end
