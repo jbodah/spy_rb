@@ -33,7 +33,10 @@ module Spy
           if !is_active
             call_original(receiver, *args, &block)
           else
-            @before_callbacks.each {|f| f.call(receiver, *args)}
+            if @before_callbacks.any?
+              mc = build_method_call(receiver, *args, &block)
+              @before_callbacks.each {|f| f.call(mc)}
+            end
 
             if @around_procs.any?
               # Procify the original call
@@ -43,21 +46,35 @@ module Spy
                 result = call_and_record(receiver, *args, &block)
               end
 
+              mc = build_method_call(receiver, *args, &block)
+
               # Keep wrapping the original proc with each around_proc
               @around_procs.reduce(original_proc) do |p, wrapper|
-                Proc.new { wrapper.call receiver, *args, &p }
+                Proc.new { wrapper.call mc, &p }
               end.call
             else
               result = call_and_record(receiver, *args, &block)
             end
 
-            @after_callbacks.each {|f| f.call(receiver, *args)}
+            if @after_callbacks.any?
+              mc = build_method_call(receiver, *args, &block)
+              @after_callbacks.each {|f| f.call(mc)}
+            end
 
             result
           end
         end
 
         private
+
+        def build_method_call(receiver, *args, &block)
+          Spy::MethodCall.new(
+            proc { call_original(receiver, *args, &block) },
+            original.name,
+            receiver,
+            *args,
+            &block)
+        end
 
         def call_and_record(receiver, *args, &block)
           record = track_call(receiver, *args, &block)
@@ -66,10 +83,9 @@ module Spy
         end
 
         def track_call(receiver, *args, &block)
-          replayer = proc { call_original(receiver, *args, &block) }
-          record = Spy::MethodCall.new(replayer, original.name, receiver, *args, &block)
-          @call_history << record
-          record
+          build_method_call(receiver, *args, &block).tap do |mc|
+            @call_history << mc
+          end
         end
 
         def call_original(receiver, *args, &block)

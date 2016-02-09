@@ -14,12 +14,24 @@ class BeforeAfterTest < Minitest::Spec
       arr = []
       spy = Spy.on(arr, :<<)
       called_args = nil
-      spy.before do |receiver, *args|
-        assert_equal arr, receiver
-        called_args = *args
+      spy.before do |mc|
+        assert_equal arr, mc.receiver
+        called_args = *mc.args
       end
       arr << 'a'
       assert_equal ['a'], called_args
+    end
+
+    it 'passes a Spy::MethodCall to the block' do
+      obj = []
+      spy = Spy.on(obj, :<<)
+
+      yielded = nil
+      spy.before { |mc| yielded = mc }
+
+      obj << "hello"
+
+      assert yielded.is_a? Spy::MethodCall
     end
   end
 
@@ -36,12 +48,24 @@ class BeforeAfterTest < Minitest::Spec
       arr = []
       spy = Spy.on(arr, :<<)
       called_args = nil
-      spy.after do |receiver, *args|
-        assert_equal arr, receiver
-        called_args = *args
+      spy.after do |mc|
+        assert_equal arr, mc.receiver
+        called_args = *mc.args
       end
       arr << 'a'
       assert_equal ['a'], called_args
+    end
+
+    it 'passes a Spy::MethodCall to the block' do
+      obj = []
+      spy = Spy.on(obj, :<<)
+
+      yielded = nil
+      spy.after { |mc| yielded = mc }
+
+      obj << "hello"
+
+      assert yielded.is_a? Spy::MethodCall
     end
   end
 end
