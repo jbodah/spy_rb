@@ -30,46 +30,56 @@ module Spy
           #   it isn't just a data struct
           is_active = @conditional_filters.all? {|f| f.call(receiver, *args)}
 
-          if !is_active
-            call_original(receiver, *args, &block)
-          else
-            @before_callbacks.each {|f| f.call(receiver, *args)}
+          return call_original(receiver, *args, &block) if !is_active
 
-            if @around_procs.any?
-              # Procify the original call
-              # Still return the result from it
-              result = nil
-              original_proc = Proc.new do
-                result = call_and_record(receiver, *args, &block)
-              end
+          if @before_callbacks.any?
+            mc = build_method_call(receiver, *args, &block)
+            @before_callbacks.each {|f| f.call(mc)}
+          end
 
-              # Keep wrapping the original proc with each around_proc
-              @around_procs.reduce(original_proc) do |p, wrapper|
-                Proc.new { wrapper.call receiver, *args, &p }
-              end.call
-            else
-              result = call_and_record(receiver, *args, &block)
+          if @around_procs.any?
+            mc = build_method_call(receiver, *args, &block)
+
+            # Procify the original call
+            # Still return the result from it
+            result = nil
+            original_proc = Proc.new do
+              result = call_and_record(receiver, args, { :record => mc }, &block)
             end
 
-            @after_callbacks.each {|f| f.call(receiver, *args)}
-
-            result
+            # Keep wrapping the original proc with each around_proc
+            @around_procs.reduce(original_proc) do |p, wrapper|
+              Proc.new { wrapper.call(mc, &p) }
+            end.call
+          else
+            result = call_and_record(receiver, args, &block)
           end
+
+          if @after_callbacks.any?
+            mc = @call_history.last
+            @after_callbacks.each {|f| f.call(mc)}
+          end
+
+          result
         end
 
         private
 
-        def call_and_record(receiver, *args, &block)
-          record = track_call(receiver, *args, &block)
-          result = call_original(receiver, *args, &block)
-          record.result = result
+        def build_method_call(receiver, *args, &block)
+          Spy::MethodCall.new(
+            proc { call_original(receiver, *args, &block) },
+            original.name,
+            receiver,
+            *args,
+            &block)
         end
 
-        def track_call(receiver, *args, &block)
-          replayer = proc { call_original(receiver, *args, &block) }
-          record = Spy::MethodCall.new(replayer, original.name, receiver, *args, &block)
+        def call_and_record(receiver, args, opts = {}, &block)
+          record = opts[:record] || build_method_call(receiver, *args, &block)
           @call_history << record
-          record
+
+          result = call_original(receiver, *args, &block)
+          record.result = result
         end
 
         def call_original(receiver, *args, &block)
