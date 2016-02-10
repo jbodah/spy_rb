@@ -277,6 +277,15 @@ class LegacySpyTest < Minitest::Spec
     end
 
     describe '.when' do
+      it 'yields a Spy::MethodCall' do
+        arr = []
+        spy = Spy.on(arr, :<<)
+        yielded = nil
+        spy.when { |mc| yielded = mc }
+        arr << "hello"
+        assert yielded.is_a? Spy::MethodCall
+      end
+
       it 'only increments call count if the filter returns true' do
         tracking = false
         spy = Spy.on(LegacyFakeClass, :hello_world).when { tracking == true }
@@ -288,15 +297,20 @@ class LegacySpyTest < Minitest::Spec
       end
 
       it 'passes the receiver and all of the call arguments to the block' do
-        arg_count = 0
-        Spy.on(LegacyFakeClass, :multi_args).when {|*args| arg_count = args.size}
+        args = nil
+        receiver = nil
+        Spy.on(LegacyFakeClass, :multi_args).when do |method_call|
+          args = method_call.args
+          receiver = method_call.receiver
+        end
         LegacyFakeClass.multi_args(1, 2, 3)
-        assert arg_count == 4
+        assert_equal [1,2,3], args
+        assert_equal LegacyFakeClass, receiver
       end
 
       it 'allows the user to only capture some args' do
         sum = 0
-        Spy.on(LegacyFakeClass, :multi_args).when {|receiver, one, two| sum = one + two}
+        Spy.on(LegacyFakeClass, :multi_args).when {|method_call| sum = method_call.args.first + method_call.args[1]}
         LegacyFakeClass.multi_args(1, 2, 3)
         assert sum == 3
       end

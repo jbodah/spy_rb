@@ -28,7 +28,12 @@ module Spy
           #   This will let us be a bit more elegant about how we do before/after
           #   callbacks. We can also merge MethodCall with this responsibility so
           #   it isn't just a data struct
-          is_active = @conditional_filters.all? {|f| f.call(receiver, *args)}
+          is_active = if @conditional_filters.any?
+                        mc = build_method_call(receiver, *args, &block)
+                        @conditional_filters.all? {|f| f.call(mc)}
+                      else
+                        true
+                      end
 
           return call_original(receiver, *args, &block) if !is_active
 
