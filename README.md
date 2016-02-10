@@ -128,7 +128,7 @@ spy.call_count
 ```rb
 fruit = Fruit.new
 spy = Spy.on(fruit, :eat)
-spy.when {|receiver, adj| adj == :quickly}
+spy.when {|method_call| method_call.args.first == :quickly}
 fruit.eat(:slowly)
 spy.call_count
 #=> 0
@@ -159,7 +159,7 @@ Those are wrapped up for you; you just need to `#call` it.
 require 'benchmark'
 fruit = Fruit.new
 spy = Spy.on(fruit, :eat)
-spy.wrap do |receiver, *args, &original|
+spy.wrap do |method_call, &original|
   puts Benchmark.measure { original.call }
 end
 fruit.eat(:hungrily)
