@@ -5,7 +5,7 @@
 [![Code Climate](https://codeclimate.com/github/jbodah/spy_rb/badges/gpa.svg)](https://codeclimate.com/github/jbodah/spy_rb)
 [![Gem Version](https://badge.fury.io/rb/spy_rb.svg)](http://badge.fury.io/rb/spy_rb)
 
-SinonJS-style Test Spies for Ruby
+Transparent Test Spies for Ruby
 
 ## Description
 
