@@ -80,11 +80,15 @@ module Spy
         end
 
         def call_and_record(receiver, args, opts = {}, &block)
-          record = opts[:record] || build_method_call(receiver, *args, &block)
-          @call_history << record
+          if @instead
+            @instead.call build_method_call(receiver, *args, &block)
+          else
+            record = opts[:record] || build_method_call(receiver, *args, &block)
+            @call_history << record
 
-          result = call_original(receiver, *args, &block)
-          record.result = result
+            result = call_original(receiver, *args, &block)
+            record.result = result
+          end
         end
 
         def call_original(receiver, *args, &block)
