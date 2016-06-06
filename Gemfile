@@ -1,9 +1,5 @@
 source "https://rubygems.org"
 
-gem 'rake'
-gem 'minitest'
-gem 'guard'
-gem 'guard-minitest'
-gem 'minitest-bisect'
+gemspec
 
 gem 'coveralls', require: false

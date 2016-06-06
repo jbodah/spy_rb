@@ -10,4 +10,8 @@ Gem::Specification.new do |s|
   s.email       = 'jb3689@yahoo.com'
   s.files       = Dir['lib/**/*.rb']
   s.homepage    = 'https://github.com/jbodah/spy_rb'
+
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'minitest'
+  s.add_development_dependency 'minitest-tagz'
 end
