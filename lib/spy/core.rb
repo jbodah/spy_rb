@@ -39,7 +39,7 @@ module Spy
     # @raises [Spy::Errors::UnableToEmptySpyRegistryError] if for some reason
     #   a spy was not removed
     def remove_all_spies
-      registry.remove_all { |spy| spy.stop }
+      registry.remove_all(&:stop)
     end
 
     private
