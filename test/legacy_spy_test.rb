@@ -41,7 +41,7 @@ class LegacySpyTest < Minitest::Spec
       it 'restores properly' do
         obj = LegacyFakeClass.new
         original = obj.method(:some_method)
-        spy = Spy.on(obj, :some_method)
+        Spy.on(obj, :some_method)
         assert original != obj.method(:some_method)
         Spy.restore(:all)
         assert_equal original, obj.method(:some_method)
@@ -79,7 +79,7 @@ class LegacySpyTest < Minitest::Spec
 
       it 'properly restores using .on_any_instance' do
         original = LegacyFakeClass.instance_method(:some_method)
-        spy = Spy.on_any_instance(LegacyFakeClass, :some_method)
+        Spy.on_any_instance(LegacyFakeClass, :some_method)
         assert original != LegacyFakeClass.instance_method(:some_method)
         Spy.restore(:all)
         assert_equal original, LegacyFakeClass.instance_method(:some_method)
@@ -147,7 +147,6 @@ class LegacySpyTest < Minitest::Spec
       end
 
       it 'modifies the class method of a class' do
-        klass = LegacyFakeClass
         old_method = LegacyFakeClass.method(:hello_world)
         Spy.on(LegacyFakeClass, :hello_world)
         assert LegacyFakeClass.method(:hello_world) != old_method
