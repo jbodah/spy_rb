@@ -53,7 +53,7 @@ class SpyTest < Minitest::Spec
       msg:      :existing_singleton_owned_method,
       original: proc { TestClass.method :existing_singleton_owned_method },
       owner:    TestClass.singleton_class
-    },
+    }
   ].each do |t|
     describe t[:name] do
       before do
@@ -102,7 +102,7 @@ class SpyTest < Minitest::Spec
     { name: 'an instance and a superclass-owned method',        to_spy: proc { TestClass.new }, msg: :superclass_owned_method,          owner: TestSuperclass },
     # NOTE: Module#include only adds instance methods. You can make a PR if you're including modules in your singleton classes
     #{ name: 'a class and a module-singleton-owned method',  to_spy: Proc.new { TestClass },     msg: :module_singleton_owned_method,  owner: TestModule.singleton_class }
-    { name: 'a class and a superclass-singleton-owned method',  to_spy: proc { TestClass },     msg: :superclass_singleton_owned_method, owner: TestSuperclass.singleton_class },
+    { name: 'a class and a superclass-singleton-owned method',  to_spy: proc { TestClass },     msg: :superclass_singleton_owned_method, owner: TestSuperclass.singleton_class }
   ].each do |t|
     describe t[:name] do
       before do
