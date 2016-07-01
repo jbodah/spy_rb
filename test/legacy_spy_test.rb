@@ -310,7 +310,7 @@ class LegacySpyTest < Minitest::Spec
 
       it 'allows the user to only capture some args' do
         sum = 0
-        Spy.on(LegacyFakeClass, :multi_args).when {|method_call| sum = method_call.args.first + method_call.args[1]}
+        Spy.on(LegacyFakeClass, :multi_args).when { |method_call| sum = method_call.args.first + method_call.args[1] }
         LegacyFakeClass.multi_args(1, 2, 3)
         assert sum == 3
       end

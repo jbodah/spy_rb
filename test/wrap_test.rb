@@ -51,7 +51,7 @@ class WrapTest < Minitest::Spec
       it 'still updates the call count properly even with multiple wraps' do
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        2.times { spy.wrap { |&block| block.call }}
+        2.times { spy.wrap { |&block| block.call } }
         spied.append 'a'
         assert_equal 1, spy.call_count
       end
@@ -84,7 +84,7 @@ class WrapTest < Minitest::Spec
       end
 
       it 'passes the receiver and the args to the wrap block' do
-        obj = Object.new.tap { |o| o.instance_eval { def say(*args); end }}
+        obj = Object.new.tap { |o| o.instance_eval { def say(*args); end } }
         s = Spy.on(obj, :say)
         passed_args = [1, 2, 3]
         s.wrap do |mc|

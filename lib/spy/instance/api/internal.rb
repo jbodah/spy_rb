@@ -30,7 +30,7 @@ module Spy
           #   it isn't just a data struct
           is_active = if @conditional_filters.any?
                         mc = build_method_call(receiver, *args, &block)
-                        @conditional_filters.all? {|f| f.call(mc)}
+                        @conditional_filters.all? { |f| f.call(mc) }
                       else
                         true
                       end
@@ -39,7 +39,7 @@ module Spy
 
           if @before_callbacks.any?
             mc = build_method_call(receiver, *args, &block)
-            @before_callbacks.each {|f| f.call(mc)}
+            @before_callbacks.each { |f| f.call(mc) }
           end
 
           if @around_procs.any?
@@ -62,7 +62,7 @@ module Spy
 
           if @after_callbacks.any?
             mc = @call_history.last
-            @after_callbacks.each {|f| f.call(mc)}
+            @after_callbacks.each { |f| f.call(mc) }
           end
 
           result

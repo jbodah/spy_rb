@@ -54,7 +54,7 @@ class RegistryTest < Minitest::Spec
       @registry.insert(obj, obj.method(:to_s), 1)
       obj = Object.new
       @registry.insert(obj, obj.method(:to_s), 2)
-      @registry.remove_all {|v| arr << v }
+      @registry.remove_all { |v| arr << v }
       assert_equal [1, 2], arr
     end
   end
