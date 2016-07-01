@@ -14,9 +14,7 @@ module Spy
     #   tracked
     def insert(spied, method, spy)
       entry = RegistryEntry.new(spied, method, spy)
-      if store.include? entry
-        raise Errors::AlreadySpiedError
-      end
+      raise Errors::AlreadySpiedError if store.include? entry
       store.insert(entry)
     end
 
@@ -27,9 +25,7 @@ module Spy
     # @raises [Spy::Errors::MethodNotSpiedError] if the spy isn't being tracked
     def remove(spied, method)
       entry = RegistryEntry.new(spied, method, nil)
-      if !store.include? entry
-        raise Errors::MethodNotSpiedError
-      end
+      raise Errors::MethodNotSpiedError if !store.include? entry
       store.remove(entry).spy
     end
 
@@ -38,10 +34,8 @@ module Spy
     # @raises [Spy::Errors::UnableToEmptySpyRegistryError] if any spies were
     #   still being tracked after removing all of the spies
     def remove_all
-      store.map {|e| yield remove(e.spied, e.method)}
-      if !store.empty?
-        raise Errors::UnableToEmptySpyRegistryError
-      end
+      store.map { |e| yield remove(e.spied, e.method) }
+      raise Errors::UnableToEmptySpyRegistryError if !store.empty?
     end
 
     # Returns whether or not the object and method are already being spied on

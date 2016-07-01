@@ -17,10 +17,8 @@ module Spy
     end
 
     def each
-      e = Enumerator.new do |y|
-        @internal.values.each {|v| y << v}
-      end
-      block_given? ? e.each(&Proc.new) : e
+      return to_enum unless block_given?
+      @internal.values.each { |v| yield v }
     end
 
     def empty?
