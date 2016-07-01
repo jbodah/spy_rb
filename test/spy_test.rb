@@ -233,4 +233,3 @@ class SpyTest < Minitest::Spec
     end
   end
 end
-
