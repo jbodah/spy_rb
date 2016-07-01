@@ -3,20 +3,20 @@ require 'test_helper'
 class CallHistoryTest < Minitest::Spec
   describe 'Spy::Instance#call_history' do
     it 'is empty when no calls have been made' do
-      arr = Array.new
+      arr = []
       spy = Spy.on(arr, :<<)
       assert spy.call_history.empty?
     end
 
     it 'has a single item when one call has been made' do
-      arr = Array.new
+      arr = []
       spy = Spy.on(arr, :<<)
       arr << 'a'
       assert_equal 1, spy.call_history.size
     end
 
     it 'has two items, ordered from first call to last, when two calls have been made' do
-      arr = Array.new
+      arr = []
       spy = Spy.on(arr, :<<)
       arr << 'a'
       arr << 'b'
@@ -29,7 +29,7 @@ class CallHistoryTest < Minitest::Spec
 
     it 'contains the result' do
       obj = Object.new
-      obj.instance_eval { define_singleton_method :add, Proc.new { |a,b| a + b }}
+      obj.instance_eval { define_singleton_method :add, proc { |a, b| a + b } }
       spy = Spy.on(obj, :add)
       obj.add(2, 2)
       obj.add(3, 3)
@@ -72,7 +72,7 @@ class CallHistoryTest < Minitest::Spec
 
     it 'records the method name' do
       obj = Object.new
-      obj.instance_eval { define_singleton_method :perform, Proc.new {} }
+      obj.instance_eval { define_singleton_method :perform, proc {} }
       spy = Spy.on(obj, :perform)
       obj.perform
       assert_equal :perform, spy.call_history[0].name

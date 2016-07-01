@@ -1,11 +1,24 @@
 require 'spy/core'
 
 module Spy
+  # The core module that users will interface. `Spy::API` is implemented
+  # in a module via `::extend`:
+  #
+  #   MySpy.exted Spy::API
+  #   spy = MySpy.on(Object, :name)
+  #
+  # By default `Spy` implements `Spy::API`
+  #
+  # `Spy::API` is primarily responsible for maps user arguments into
+  # a format that `Spy::Core` can understand
+  #
+  # See `Spy::Instance` for the API for interacting with individual spies
   module API
-    # Spies on calls to a method made on an object
+    # Spies on calls to a method made on a target object
     #
-    # @param target - the object you want to spy on
-    # @param msg - the name of the method to spy on
+    # @param [Object] target - the object you want to spy on
+    # @param [Symbol] msg - the name of the method to spy on
+    # @returns [Spy::Instance]
     def on(target, msg)
       core.add_spy(target, target.method(msg))
     end
@@ -22,16 +35,19 @@ module Spy
 
     # Stops spying on the method and restores its original functionality
     #
-    # @param args - supports multiple signatures
+    # @example stop spying on every spied message
     #
     #   Spy.restore(:all)
-    #       => stops spying on every spied message
+    #
+    # @example stop spying on the given receiver and message
     #
     #   Spy.restore(receiver, msg)
-    #       => stops spying on the given receiver and message (assumes :method)
     #
-    #   Spy.restore(reciever, msg, method_type)
-    #       =>  stops spying on the given receiver and message of method_type
+    # @example stop spying on the given object, message, and method type (e.g. :instance_method)
+    #
+    #   Spy.restore(object, msg, method_type)
+    #
+    # @param args - supports multiple signatures
     def restore(*args)
       case args.length
       when 1

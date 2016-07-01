@@ -19,6 +19,6 @@ class SmokeTest < Minitest::Spec
       Spy.on(klass, :to_s)
       Spy.on(klass, :to_s)
     end
-    assert Spy.send(:core).send(:collection).instance_variable_get(:@store).count == 1
+    assert Spy.send(:core).send(:registry).instance_variable_get(:@store).count == 1
   end
 end

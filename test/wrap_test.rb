@@ -51,7 +51,7 @@ class WrapTest < Minitest::Spec
       it 'still updates the call count properly even with multiple wraps' do
         spied = TestClass.new
         spy = Spy.on(spied, :append)
-        2.times { spy.wrap { |&block| block.call }}
+        2.times { spy.wrap { |&block| block.call } }
         spied.append 'a'
         assert_equal 1, spy.call_count
       end
@@ -84,7 +84,7 @@ class WrapTest < Minitest::Spec
       end
 
       it 'passes the receiver and the args to the wrap block' do
-        obj = Object.new.tap {|o| o.instance_eval { def say(*args); end }}
+        obj = Object.new.tap { |o| o.instance_eval { def say(*args); end } }
         s = Spy.on(obj, :say)
         passed_args = [1, 2, 3]
         s.wrap do |mc|
@@ -98,10 +98,10 @@ class WrapTest < Minitest::Spec
         r = TestClass.new
         spy = Spy.on(r, :recursive_add)
 
-        spy.wrap do |*args, &block|
+        spy.wrap do |*_args, &block|
           block.call
         end
-        assert_equal 4, r.recursive_add(2,2)
+        assert_equal 4, r.recursive_add(2, 2)
       end
 
       it 'passes a Spy::MethodCall to the block' do
@@ -111,7 +111,7 @@ class WrapTest < Minitest::Spec
         yielded = nil
         spy.wrap { |mc| yielded = mc }
 
-        obj << "hello"
+        obj << 'hello'
 
         assert yielded.is_a? Spy::MethodCall
       end
@@ -123,7 +123,7 @@ class WrapTest < Minitest::Spec
         yielded = nil
         spy.wrap { |mc, &block| block.call; yielded = mc }
 
-        obj << "hello"
+        obj << 'hello'
 
         assert_equal obj, yielded.result
       end

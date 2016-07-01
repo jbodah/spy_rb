@@ -5,13 +5,10 @@ module Spy
 
     def initialize(replayer, name, receiver, *args)
       @replayer = replayer
-      @name = name
+      @name     = name
       @receiver = receiver
-      @args = args
-
-      if block_given?
-        @block = proc { receiver.instance_eval &Proc.new }
-      end
+      @args     = args
+      @block    = proc { receiver.instance_eval &Proc.new } if block_given?
     end
 
     def replay

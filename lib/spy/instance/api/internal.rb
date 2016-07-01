@@ -30,16 +30,16 @@ module Spy
           #   it isn't just a data struct
           is_active = if @conditional_filters.any?
                         mc = build_method_call(receiver, *args, &block)
-                        @conditional_filters.all? {|f| f.call(mc)}
+                        @conditional_filters.all? { |f| f.call(mc) }
                       else
                         true
                       end
 
-          return call_original(receiver, *args, &block) if !is_active
+          return call_original(receiver, *args, &block) unless is_active
 
           if @before_callbacks.any?
             mc = build_method_call(receiver, *args, &block)
-            @before_callbacks.each {|f| f.call(mc)}
+            @before_callbacks.each { |f| f.call(mc) }
           end
 
           if @around_procs.any?
@@ -48,13 +48,13 @@ module Spy
             # Procify the original call
             # Still return the result from it
             result = nil
-            original_proc = Proc.new do
+            original_proc = proc do
               result = call_and_record(receiver, args, { :record => mc }, &block)
             end
 
             # Keep wrapping the original proc with each around_proc
             @around_procs.reduce(original_proc) do |p, wrapper|
-              Proc.new { wrapper.call(mc, &p) }
+              proc { wrapper.call(mc, &p) }
             end.call
           else
             result = call_and_record(receiver, args, &block)
@@ -62,7 +62,7 @@ module Spy
 
           if @after_callbacks.any?
             mc = @call_history.last
-            @after_callbacks.each {|f| f.call(mc)}
+            @after_callbacks.each { |f| f.call(mc) }
           end
 
           result

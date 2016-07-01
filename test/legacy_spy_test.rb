@@ -41,7 +41,7 @@ class LegacySpyTest < Minitest::Spec
       it 'restores properly' do
         obj = LegacyFakeClass.new
         original = obj.method(:some_method)
-        spy = Spy.on(obj, :some_method)
+        Spy.on(obj, :some_method)
         assert original != obj.method(:some_method)
         Spy.restore(:all)
         assert_equal original, obj.method(:some_method)
@@ -79,7 +79,7 @@ class LegacySpyTest < Minitest::Spec
 
       it 'properly restores using .on_any_instance' do
         original = LegacyFakeClass.instance_method(:some_method)
-        spy = Spy.on_any_instance(LegacyFakeClass, :some_method)
+        Spy.on_any_instance(LegacyFakeClass, :some_method)
         assert original != LegacyFakeClass.instance_method(:some_method)
         Spy.restore(:all)
         assert_equal original, LegacyFakeClass.instance_method(:some_method)
@@ -147,7 +147,6 @@ class LegacySpyTest < Minitest::Spec
       end
 
       it 'modifies the class method of a class' do
-        klass = LegacyFakeClass
         old_method = LegacyFakeClass.method(:hello_world)
         Spy.on(LegacyFakeClass, :hello_world)
         assert LegacyFakeClass.method(:hello_world) != old_method
@@ -268,7 +267,7 @@ class LegacySpyTest < Minitest::Spec
       it 'should increment on exceptions' do
         obj = Object.new
         class << obj
-          define_method :throw_exception, Proc.new { raise }
+          define_method :throw_exception, proc { raise }
         end
         spy = Spy.on(obj, :throw_exception)
         obj.throw_exception rescue
@@ -282,7 +281,7 @@ class LegacySpyTest < Minitest::Spec
         spy = Spy.on(arr, :<<)
         yielded = nil
         spy.when { |mc| yielded = mc }
-        arr << "hello"
+        arr << 'hello'
         assert yielded.is_a? Spy::MethodCall
       end
 
@@ -304,13 +303,13 @@ class LegacySpyTest < Minitest::Spec
           receiver = method_call.receiver
         end
         LegacyFakeClass.multi_args(1, 2, 3)
-        assert_equal [1,2,3], args
+        assert_equal [1, 2, 3], args
         assert_equal LegacyFakeClass, receiver
       end
 
       it 'allows the user to only capture some args' do
         sum = 0
-        Spy.on(LegacyFakeClass, :multi_args).when {|method_call| sum = method_call.args.first + method_call.args[1]}
+        Spy.on(LegacyFakeClass, :multi_args).when { |method_call| sum = method_call.args.first + method_call.args[1] }
         LegacyFakeClass.multi_args(1, 2, 3)
         assert sum == 3
       end
