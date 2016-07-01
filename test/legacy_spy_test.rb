@@ -267,7 +267,7 @@ class LegacySpyTest < Minitest::Spec
       it 'should increment on exceptions' do
         obj = Object.new
         class << obj
-          define_method :throw_exception, Proc.new { raise }
+          define_method :throw_exception, proc { raise }
         end
         spy = Spy.on(obj, :throw_exception)
         obj.throw_exception rescue

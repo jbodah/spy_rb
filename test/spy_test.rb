@@ -25,33 +25,33 @@ class SpyTest < Minitest::Spec
   [
     {
       name:     'an instance and a dynamic singleton-owned method',
-      to_spy:   Proc.new { TestClass.new },
+      to_spy:   proc { TestClass.new },
       msg:      :singleton_owned_method,
-      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
-      owner:    Proc.new { |spied| spied.singleton_class }
+      original: proc { |spied, sym| spied.define_singleton_method(sym, proc {}); spied.method(sym) },
+      cleanup:  proc { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
+      owner:    proc { |spied| spied.singleton_class }
     },
     {
       name:     'a class and a dynamic singleton-owned method',
       to_spy:   TestClass,
       msg:      :singleton_owned_method,
-      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
+      original: proc { |spied, sym| spied.define_singleton_method(sym, proc {}); spied.method(sym) },
+      cleanup:  proc { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
       owner:    TestClass.singleton_class
     },
     {
       name:     'a module and a dynamic singleton-owned method',
       to_spy:   TestModule,
       msg:      :singleton_owned_method,
-      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
+      original: proc { |spied, sym| spied.define_singleton_method(sym, proc {}); spied.method(sym) },
+      cleanup:  proc { |spied, sym| spied.singleton_class.class_eval { remove_method sym } },
       owner:    TestModule.singleton_class
     },
     {
       name:     'a class and an existing singleton-owned method',
       to_spy:   TestClass,
       msg:      :existing_singleton_owned_method,
-      original: Proc.new { TestClass.method :existing_singleton_owned_method },
+      original: proc { TestClass.method :existing_singleton_owned_method },
       owner:    TestClass.singleton_class
     },
   ].each do |t|
@@ -97,12 +97,12 @@ class SpyTest < Minitest::Spec
 
   # Intercepting
   [
-    { name: 'an instance and a class-owned method',             to_spy: Proc.new { TestClass.new }, msg: :class_owned_method,               owner: TestClass },
-    { name: 'an instance and a module-owned method',            to_spy: Proc.new { TestClass.new }, msg: :module_owned_method,              owner: TestModule },
-    { name: 'an instance and a superclass-owned method',        to_spy: Proc.new { TestClass.new }, msg: :superclass_owned_method,          owner: TestSuperclass },
+    { name: 'an instance and a class-owned method',             to_spy: proc { TestClass.new }, msg: :class_owned_method,               owner: TestClass },
+    { name: 'an instance and a module-owned method',            to_spy: proc { TestClass.new }, msg: :module_owned_method,              owner: TestModule },
+    { name: 'an instance and a superclass-owned method',        to_spy: proc { TestClass.new }, msg: :superclass_owned_method,          owner: TestSuperclass },
     # NOTE: Module#include only adds instance methods. You can make a PR if you're including modules in your singleton classes
     #{ name: 'a class and a module-singleton-owned method',  to_spy: Proc.new { TestClass },     msg: :module_singleton_owned_method,  owner: TestModule.singleton_class }
-    { name: 'a class and a superclass-singleton-owned method',  to_spy: Proc.new { TestClass },     msg: :superclass_singleton_owned_method, owner: TestSuperclass.singleton_class },
+    { name: 'a class and a superclass-singleton-owned method',  to_spy: proc { TestClass },     msg: :superclass_singleton_owned_method, owner: TestSuperclass.singleton_class },
   ].each do |t|
     describe t[:name] do
       before do
@@ -155,8 +155,8 @@ class SpyTest < Minitest::Spec
 
       # Wrapping
       [
-        { name: 'a class and a class-owned method',   to_spy: Proc.new { TestClass },   msg: :class_owned_method },
-        { name: 'a module and a module-owned method', to_spy: Proc.new { TestModule },  msg: :module_owned_method }
+        { name: 'a class and a class-owned method',   to_spy: proc { TestClass },   msg: :class_owned_method },
+        { name: 'a module and a module-owned method', to_spy: proc { TestModule },  msg: :module_owned_method }
       ].each do |t|
         describe t[:name] do
           describe 'and a class-owned method' do

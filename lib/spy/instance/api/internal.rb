@@ -48,13 +48,13 @@ module Spy
             # Procify the original call
             # Still return the result from it
             result = nil
-            original_proc = Proc.new do
+            original_proc = proc do
               result = call_and_record(receiver, args, { :record => mc }, &block)
             end
 
             # Keep wrapping the original proc with each around_proc
             @around_procs.reduce(original_proc) do |p, wrapper|
-              Proc.new { wrapper.call(mc, &p) }
+              proc { wrapper.call(mc, &p) }
             end.call
           else
             result = call_and_record(receiver, args, &block)

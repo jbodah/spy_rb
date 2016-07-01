@@ -29,7 +29,7 @@ class CallHistoryTest < Minitest::Spec
 
     it 'contains the result' do
       obj = Object.new
-      obj.instance_eval { define_singleton_method :add, Proc.new { |a, b| a + b } }
+      obj.instance_eval { define_singleton_method :add, proc { |a, b| a + b } }
       spy = Spy.on(obj, :add)
       obj.add(2, 2)
       obj.add(3, 3)
@@ -72,7 +72,7 @@ class CallHistoryTest < Minitest::Spec
 
     it 'records the method name' do
       obj = Object.new
-      obj.instance_eval { define_singleton_method :perform, Proc.new {} }
+      obj.instance_eval { define_singleton_method :perform, proc {} }
       spy = Spy.on(obj, :perform)
       obj.perform
       assert_equal :perform, spy.call_history[0].name
