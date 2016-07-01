@@ -282,7 +282,7 @@ class LegacySpyTest < Minitest::Spec
         spy = Spy.on(arr, :<<)
         yielded = nil
         spy.when { |mc| yielded = mc }
-        arr << "hello"
+        arr << 'hello'
         assert yielded.is_a? Spy::MethodCall
       end
 

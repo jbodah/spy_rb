@@ -27,24 +27,24 @@ class SpyTest < Minitest::Spec
       name:     'an instance and a dynamic singleton-owned method',
       to_spy:   Proc.new { TestClass.new },
       msg:      :singleton_owned_method,
-      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
-      owner:    Proc.new {|spied| spied.singleton_class}
+      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      owner:    Proc.new { |spied| spied.singleton_class}
     },
     {
       name:     'a class and a dynamic singleton-owned method',
       to_spy:   TestClass,
       msg:      :singleton_owned_method,
-      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym }},
       owner:    TestClass.singleton_class
     },
     {
       name:     'a module and a dynamic singleton-owned method',
       to_spy:   TestModule,
       msg:      :singleton_owned_method,
-      original: Proc.new {|spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
-      cleanup:  Proc.new {|spied, sym| spied.singleton_class.class_eval { remove_method sym }},
+      original: Proc.new { |spied, sym| spied.define_singleton_method(sym, Proc.new {}); spied.method(sym) },
+      cleanup:  Proc.new { |spied, sym| spied.singleton_class.class_eval { remove_method sym }},
       owner:    TestModule.singleton_class
     },
     {

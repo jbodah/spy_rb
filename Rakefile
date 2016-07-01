@@ -1,7 +1,7 @@
 require 'rake/testtask'
 
 Rake::TestTask.new do |t|
-  t.libs << "test"
+  t.libs << 'test'
   t.test_files = FileList['test/*test.rb']
   t.verbose = true
 end
@@ -34,7 +34,7 @@ end
 
 desc 'runs through entire deploy process'
 task :full_deploy => [:test, :change_version] do
-  system "git push && git push --tags"
+  system 'git push && git push --tags'
   Rake::Task['deploy'].invoke
 end
 
@@ -52,7 +52,7 @@ task :change_version do
   File.open(version_file, 'w') {|f| f.puts text}
 
   puts 'Committing version.rb'
-  exit(1) unless system "git add lib/spy/version.rb"
+  exit(1) unless system 'git add lib/spy/version.rb'
   exit(1) unless system "git commit -m 'bump to version #{ENV['TO']}'"
   exit(1) unless system "git tag #{ENV['TO']}"
 

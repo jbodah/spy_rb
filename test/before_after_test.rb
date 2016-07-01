@@ -29,7 +29,7 @@ class BeforeAfterTest < Minitest::Spec
       yielded = nil
       spy.before { |mc| yielded = mc }
 
-      obj << "hello"
+      obj << 'hello'
 
       assert yielded.is_a? Spy::MethodCall
     end
@@ -63,7 +63,7 @@ class BeforeAfterTest < Minitest::Spec
       yielded = nil
       spy.after { |mc| yielded = mc }
 
-      obj << "hello"
+      obj << 'hello'
 
       assert yielded.is_a? Spy::MethodCall
     end
@@ -75,7 +75,7 @@ class BeforeAfterTest < Minitest::Spec
       yielded = nil
       spy.after { |mc| yielded = mc }
 
-      obj << "hello"
+      obj << 'hello'
 
       assert_equal obj, yielded.result
     end

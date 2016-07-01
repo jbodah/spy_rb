@@ -84,7 +84,7 @@ class WrapTest < Minitest::Spec
       end
 
       it 'passes the receiver and the args to the wrap block' do
-        obj = Object.new.tap {|o| o.instance_eval { def say(*args); end }}
+        obj = Object.new.tap { |o| o.instance_eval { def say(*args); end }}
         s = Spy.on(obj, :say)
         passed_args = [1, 2, 3]
         s.wrap do |mc|
@@ -111,7 +111,7 @@ class WrapTest < Minitest::Spec
         yielded = nil
         spy.wrap { |mc| yielded = mc }
 
-        obj << "hello"
+        obj << 'hello'
 
         assert yielded.is_a? Spy::MethodCall
       end
@@ -123,7 +123,7 @@ class WrapTest < Minitest::Spec
         yielded = nil
         spy.wrap { |mc, &block| block.call; yielded = mc }
 
-        obj << "hello"
+        obj << 'hello'
 
         assert_equal obj, yielded.result
       end
