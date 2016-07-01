@@ -1,5 +1,5 @@
 require 'spy/instance'
-require 'spy/collection'
+require 'spy/registry'
 require 'spy/errors'
 
 module Spy
@@ -17,11 +17,9 @@ module Spy
     # @raises [Spy::Errors::AlreadySpiedError] if the method is already
     #   being spied on
     def add_spy(object, method)
-      if collection.include?(object, method)
-        raise Errors::AlreadySpiedError
-      end
+      raise Errors::AlreadySpiedError if registry.include?(object, method)
       spy = Instance.new(object, method)
-      collection.insert(object, method, spy)
+      registry.insert(object, method, spy)
       spy.start
     end
 
@@ -32,22 +30,22 @@ module Spy
     # @raises [Spy::Errors::MethodNotSpiedError] if the method is not already
     #   being spied on
     def remove_spy(object, method)
-      spy = collection.remove(object, method)
+      spy = registry.remove(object, method)
       spy.stop
     end
 
     # Stops spying on all objects and methods
     #
-    # @raises [Spy::Errors::UnableToEmptySpyCollectionError] if for some reason
+    # @raises [Spy::Errors::UnableToEmptySpyRegistryError] if for some reason
     #   a spy was not removed
     def remove_all_spies
-      collection.remove_all { |spy| spy.stop }
+      registry.remove_all { |spy| spy.stop }
     end
 
     private
 
-    def collection
-      @collection ||= Collection.new
+    def registry
+      @registry ||= Registry.new
     end
   end
 end

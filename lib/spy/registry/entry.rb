@@ -1,5 +1,5 @@
 module Spy
-  class Collection
+  class Registry
     # Abstraction to isolate domain logic
     class Entry < Struct.new(:spied, :method, :spy)
       def key

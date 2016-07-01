@@ -1,10 +1,10 @@
 require 'spy/errors'
-require 'spy/collection/store'
-require 'spy/collection/entry'
+require 'spy/registry/store'
+require 'spy/registry/entry'
 
 module Spy
   # Responsible for managing the top-level state of which spies exist.
-  class Collection
+  class Registry
     # Keeps track of the spy for later management. Ensures spy uniqueness
     #
     # @param [Object] spied - the object being spied on
@@ -35,12 +35,12 @@ module Spy
 
     # Stops tracking all spies
     #
-    # @raises [Spy::Errors::UnableToEmptySpyCollectionError] if any spies were
+    # @raises [Spy::Errors::UnableToEmptySpyRegistryError] if any spies were
     #   still being tracked after removing all of the spies
     def remove_all
       store.map {|e| yield remove(e.spied, e.method)}
       if !store.empty?
-        raise Errors::UnableToEmptySpyCollectionError
+        raise Errors::UnableToEmptySpyRegistryError
       end
     end
 
