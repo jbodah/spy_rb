@@ -1,5 +1,5 @@
 require 'spy/errors'
-require 'spy/registry/store'
+require 'spy/registry_store'
 require 'spy/registry_entry'
 
 module Spy
@@ -56,7 +56,7 @@ module Spy
     private
 
     def store
-      @store ||= Store.new
+      @store ||= RegistryStore.new
     end
   end
 end
