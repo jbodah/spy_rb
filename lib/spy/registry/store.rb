@@ -1,6 +1,6 @@
 module Spy
   class Registry
-    # Works with Entry abstractions to allow the
+    # Works with RegistryEntry abstractions to allow the
     # store data structure to be easily swapped
     class Store
       include Enumerable
