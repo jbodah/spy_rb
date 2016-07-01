@@ -21,6 +21,7 @@ module Spy
       @around_procs = []
       @call_history = []
       @strategy = Strategy.factory_build(self)
+      @instead = nil
     end
 
     def name
@@ -65,6 +66,10 @@ module Spy
     def after(&block)
       @after_callbacks << block
       self
+    end
+
+    def instead(&block)
+      @instead = block
     end
 
     private
