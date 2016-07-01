@@ -35,7 +35,7 @@ module Spy
                         true
                       end
 
-          return call_original(receiver, *args, &block) if !is_active
+          return call_original(receiver, *args, &block) unless is_active
 
           if @before_callbacks.any?
             mc = build_method_call(receiver, *args, &block)

@@ -25,7 +25,7 @@ module Spy
     # @raises [Spy::Errors::MethodNotSpiedError] if the spy isn't being tracked
     def remove(spied, method)
       entry = RegistryEntry.new(spied, method, nil)
-      raise Errors::MethodNotSpiedError if !store.include? entry
+      raise Errors::MethodNotSpiedError unless store.include? entry
       store.remove(entry).spy
     end
 
@@ -35,7 +35,7 @@ module Spy
     #   still being tracked after removing all of the spies
     def remove_all
       store.map { |e| yield remove(e.spied, e.method) }
-      raise Errors::UnableToEmptySpyRegistryError if !store.empty?
+      raise Errors::UnableToEmptySpyRegistryError unless store.empty?
     end
 
     # Returns whether or not the object and method are already being spied on
