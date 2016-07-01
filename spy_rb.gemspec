@@ -1,4 +1,5 @@
-require_relative 'lib/spy/version'
+$: << File.expand_path('../lib', __FILE__)
+require 'spy/version'
 
 Gem::Specification.new do |s|
   s.name        = 'spy_rb'
