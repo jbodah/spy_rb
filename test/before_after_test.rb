@@ -7,7 +7,7 @@ class BeforeAfterTest < Minitest::Spec
       spy = Spy.on(arr, :<<)
       spy.before { arr.push('b') }
       arr << 'a'
-      assert_equal ['b', 'a'], arr
+      assert_equal %w(b a), arr
     end
 
     it 'is passed the receiver and the args of the call' do
@@ -41,7 +41,7 @@ class BeforeAfterTest < Minitest::Spec
       spy = Spy.on(arr, :<<)
       spy.after { arr.push('b') }
       arr << 'a'
-      assert_equal ['a', 'b'], arr
+      assert_equal %w(a b), arr
     end
 
     it 'is passed the receiver and the args of the call' do
