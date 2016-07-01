@@ -98,7 +98,7 @@ class WrapTest < Minitest::Spec
         r = TestClass.new
         spy = Spy.on(r, :recursive_add)
 
-        spy.wrap do |*args, &block|
+        spy.wrap do |*_args, &block|
           block.call
         end
         assert_equal 4, r.recursive_add(2,2)
