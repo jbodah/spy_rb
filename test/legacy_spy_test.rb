@@ -304,7 +304,7 @@ class LegacySpyTest < Minitest::Spec
           receiver = method_call.receiver
         end
         LegacyFakeClass.multi_args(1, 2, 3)
-        assert_equal [1,2,3], args
+        assert_equal [1, 2, 3], args
         assert_equal LegacyFakeClass, receiver
       end
 

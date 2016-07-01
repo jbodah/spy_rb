@@ -101,7 +101,7 @@ class WrapTest < Minitest::Spec
         spy.wrap do |*_args, &block|
           block.call
         end
-        assert_equal 4, r.recursive_add(2,2)
+        assert_equal 4, r.recursive_add(2, 2)
       end
 
       it 'passes a Spy::MethodCall to the block' do
