@@ -72,7 +72,7 @@ class SpyTest < Minitest::Spec
       describe 'Spy.on' do
         it 'chooses a wrapping strategy' do
           s = Spy.on(@spied, @sym)
-          assert_equal s.strategy.class, Spy::Instance::Strategy::Wrap
+          assert_equal s.strategy.class, Spy::Strategy::Wrap
         end
 
         it 'wraps the method' do
@@ -119,7 +119,7 @@ class SpyTest < Minitest::Spec
       describe 'Spy.on' do
         it 'chooses an intercept strategy' do
           s = Spy.on(@spied, @sym)
-          assert_equal s.strategy.class, Spy::Instance::Strategy::Intercept
+          assert_equal s.strategy.class, Spy::Strategy::Intercept
         end
 
         it 'defines a singleton method' do
@@ -172,7 +172,7 @@ class SpyTest < Minitest::Spec
 
             it 'chooses a wrapping strategy' do
               s = Spy.on_any_instance(@spied, @sym)
-              assert_equal s.strategy.class, Spy::Instance::Strategy::Wrap
+              assert_equal s.strategy.class, Spy::Strategy::Wrap
             end
 
             it 'wraps the method' do
@@ -211,7 +211,7 @@ class SpyTest < Minitest::Spec
 
           it 'chooses an intercept strategy' do
             s = Spy.on_any_instance(@spied, @sym)
-            assert_equal s.strategy.class, Spy::Instance::Strategy::Intercept
+            assert_equal s.strategy.class, Spy::Strategy::Intercept
           end
 
           it 'defines a method on the class' do

@@ -5,19 +5,6 @@ module Spy
     module API
       # The API we expose internally to our collaborators
       module Internal
-        # TODO: Not sure if this is the best place for this
-        #
-        # Defines the spy on the target object
-        def attach_to(target)
-          spy = self
-          target.class_eval do
-            define_method spy.original.name do |*args, &block|
-              spy.call(self, *args, &block)
-            end
-            send(spy.visibility, spy.original.name)
-          end
-        end
-
         # Call the spied method using the given receiver and arguments.
         #
         # receiver is required to allow calling of UnboundMethods such as

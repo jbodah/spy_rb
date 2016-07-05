@@ -1,5 +1,6 @@
-require 'spy/instance/strategy'
+require 'spy/strategy'
 require 'spy/instance/api/internal'
+require 'spy/determine_visibility'
 
 # An instance of a spied method
 # - Holds a reference to the original method
@@ -14,7 +15,7 @@ module Spy
     def initialize(spied, original)
       @spied = spied
       @original = original
-      @visibility = extract_visibility
+      @visibility = DetermineVisibility.call(@original)
       @conditional_filters = []
       @before_callbacks = []
       @after_callbacks = []
@@ -70,19 +71,6 @@ module Spy
 
     def instead(&block)
       @instead = block
-    end
-
-    private
-
-    def extract_visibility
-      owner = @original.owner
-      [:public, :protected, :private].each do |vis|
-        query = "#{vis}_method_defined?"
-        if owner.respond_to?(query) && owner.send(query, @original.name)
-          return vis
-        end
-      end
-      raise NoMethodError, "couldn't find method #{@original.name} belonging to #{owner}"
     end
   end
 end
