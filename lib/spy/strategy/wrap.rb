@@ -8,6 +8,8 @@ module Spy
       def apply
         spy = @spy
         @spy.original.owner.class_eval do
+          undef_method spy.original.name
+
           # Replace the method with the spy
           define_method spy.original.name do |*args, &block|
             spy.call(self, *args, &block)
