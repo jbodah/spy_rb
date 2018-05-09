@@ -75,7 +75,6 @@ class WrapTest < Minitest::Spec
 
         s = Spy.on(obj, :hello)
         s.wrap do |&block|
-          123
           block.call
           456
         end
