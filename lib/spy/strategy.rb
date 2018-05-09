@@ -23,7 +23,7 @@ module Spy
         else
           # Otherwise we can intercept it by abusing the
           # inheritance hierarchy
-          Strategy::Intercept.new(spy, spied_on)
+          Strategy::Intercept.new(spy)
         end
       end
     end

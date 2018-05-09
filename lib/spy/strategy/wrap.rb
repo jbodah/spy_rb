@@ -1,5 +1,3 @@
-require 'spy/strategy/attach'
-
 module Spy
   module Strategy
     class Wrap
@@ -8,7 +6,16 @@ module Spy
       end
 
       def apply
-        Spy::Strategy::Attach.call(@spy, @spy.original.owner)
+        spy = @spy
+        @spy.original.owner.class_eval do
+          # Replace the method with the spy
+          define_method spy.original.name do |*args, &block|
+            spy.call(self, *args, &block)
+          end
+
+          # Make the visibility of the spy match the spied original
+          send(spy.visibility, spy.original.name)
+        end
       end
 
       def undo

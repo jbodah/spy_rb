@@ -1,20 +1,32 @@
-require 'spy/strategy/attach'
-
 module Spy
   module Strategy
     class Intercept
-      def initialize(spy, intercept_target)
+      def initialize(spy)
         @spy = spy
-        @intercept_target = intercept_target
+        @target =
+          if spy.original.is_a?(Method)
+            spy.spied.singleton_class
+          else
+            spy.spied
+          end
       end
 
       def apply
-        Spy::Strategy::Attach.call(@spy, @intercept_target)
+        spy = @spy
+        @target.class_eval do
+          # Add the spy to the intercept target
+          define_method spy.original.name do |*args, &block|
+            spy.call(self, *args, &block)
+          end
+
+          # Make the visibility of the spy match the spied original
+          send(spy.visibility, spy.original.name)
+        end
       end
 
       def undo
         spy = @spy
-        @intercept_target.class_eval do
+        @target.class_eval do
           remove_method spy.original.name
         end
       end
