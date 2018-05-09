@@ -62,6 +62,7 @@ module Spy
             proc { call_original(receiver, *args, &block) },
             original.name,
             receiver,
+            caller[3..-1],
             *args,
             &block)
         end

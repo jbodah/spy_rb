@@ -77,5 +77,13 @@ class CallHistoryTest < Minitest::Spec
       obj.perform
       assert_equal :perform, spy.call_history[0].name
     end
+
+    it 'records the caller' do
+      obj = Object.new
+      obj.instance_eval { define_singleton_method :perform, proc {} }
+      spy = Spy.on(obj, :perform)
+      obj.perform
+      assert spy.call_history[0].caller[0] =~ /call_history_test\.rb/
+    end
   end
 end
