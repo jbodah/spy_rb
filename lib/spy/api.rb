@@ -1,4 +1,5 @@
 require 'spy/core'
+require 'spy/blueprint'
 
 module Spy
   # The core module that users will interface. `Spy::API` is implemented
@@ -20,7 +21,13 @@ module Spy
     # @param [Symbol] msg - the name of the method to spy on
     # @returns [Spy::Instance]
     def on(target, msg)
-      core.add_spy(target, target.method(msg))
+      if target.methods.include?(msg)
+        core.add_spy(Blueprint.new(target, msg, :method))
+      elsif target.respond_to?(msg)
+        core.add_spy(Blueprint.new(target, msg, :dynamic_delegation))
+      else
+        raise ArgumentError
+      end
     end
 
     # Spies on calls to a method made on any instance of some class or module
@@ -30,7 +37,7 @@ module Spy
     # @returns [Spy::Instance]
     def on_any_instance(target, msg)
       raise ArgumentError unless target.respond_to?(:instance_method)
-      core.add_spy(target, target.instance_method(msg))
+      core.add_spy(Blueprint.new(target, msg, :instance_method))
     end
 
     # Stops spying on the method and restores its original functionality
@@ -43,9 +50,9 @@ module Spy
     #
     #   Spy.restore(receiver, msg)
     #
-    # @example stop spying on the given object, message, and method type (e.g. :instance_method)
+    # @example stop spying on the given object, message, and type (e.g. :method, :instance_method, :dynamic_delegation)
     #
-    #   Spy.restore(object, msg, method_type)
+    #   Spy.restore(object, msg, type)
     #
     # @param args - supports multiple signatures
     def restore(*args)
@@ -54,10 +61,10 @@ module Spy
         core.remove_all_spies if args.first == :all
       when 2
         target, msg = *args
-        core.remove_spy(target, target.method(msg))
+        core.remove_spy(Blueprint.new(target, msg, :method))
       when 3
-        target, msg, method_type = *args
-        core.remove_spy(target, target.send(method_type, msg))
+        target, msg, type = *args
+        core.remove_spy(Blueprint.new(target, msg, type))
       else
         raise ArgumentError
       end

@@ -9,43 +9,37 @@ module Spy
   # Syntactic sugar (like `Spy.restore(object, msg)` vs `Spy.restore(:all)`)
   # should be handled in `Spy::API` and utilize `Spy::Core`
   class Core
+    def initialize
+      @registry = Registry.new
+    end
+
     # Start spying on the given object and method
     #
-    # @param [Object] object - the object to spy on
-    # @param [Method, UnboundMethod] method - the method to spy on
+    # @param [Spy::Blueprint] blueprint - data for building the spy
     # @returns [Spy::Instance]
     # @raises [Spy::Errors::AlreadySpiedError] if the method is already
     #   being spied on
-    def add_spy(object, method)
-      raise Errors::AlreadySpiedError if registry.include?(object, method)
-      spy = Instance.new(object, method)
-      registry.insert(object, method, spy)
+    def add_spy(blueprint)
+      if prev = @registry.get(blueprint)
+        raise Errors::AlreadySpiedError.new("Already spied on here:\n\t#{prev[0].caller.join("\n\t")}")
+      end
+      spy = Instance.new(blueprint)
+      @registry.insert(blueprint, spy)
       spy.start
     end
 
     # Stop spying on the given object and method
     #
-    # @param [Object] object - the object being spied on
-    # @param [Method, UnboundMethod] method - the method to stop spying on
     # @raises [Spy::Errors::MethodNotSpiedError] if the method is not already
     #   being spied on
-    def remove_spy(object, method)
-      spy = registry.remove(object, method)
+    def remove_spy(blueprint)
+      spy = @registry.remove(blueprint)
       spy.stop
     end
 
     # Stops spying on all objects and methods
-    #
-    # @raises [Spy::Errors::UnableToEmptySpyRegistryError] if for some reason
-    #   a spy was not removed
     def remove_all_spies
-      registry.remove_all(&:stop)
-    end
-
-    private
-
-    def registry
-      @registry ||= Registry.new
+      @registry.remove_all.each(&:stop)
     end
   end
 end

@@ -1,13 +1,18 @@
+require 'spy/determine_visibility'
+
 module Spy
   module Strategy
     class Intercept
       def initialize(spy)
         @spy = spy
         @target =
-          if spy.original.is_a?(Method)
+          case spy.original
+          when Method
             spy.spied.singleton_class
-          else
+          when UnboundMethod
             spy.spied
+          when FakeMethod
+            spy.spied.singleton_class
           end
       end
 
@@ -20,7 +25,10 @@ module Spy
           end
 
           # Make the visibility of the spy match the spied original
-          send(spy.visibility, spy.original.name)
+          unless spy.original.is_a?(FakeMethod)
+            visibility = DetermineVisibility.call(spy.original)
+            send(visibility, spy.original.name)
+          end
         end
       end
 

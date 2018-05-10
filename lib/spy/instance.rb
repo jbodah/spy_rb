@@ -1,6 +1,7 @@
-require 'spy/strategy'
+require 'spy/fake_method'
 require 'spy/instance/api/internal'
-require 'spy/determine_visibility'
+require 'spy/strategy/wrap'
+require 'spy/strategy/intercept'
 
 # An instance of a spied method
 # - Holds a reference to the original method
@@ -10,18 +11,27 @@ module Spy
   class Instance
     include API::Internal
 
-    attr_reader :original, :spied, :strategy, :visibility, :call_history
+    attr_reader :original, :spied, :strategy, :call_history
 
-    def initialize(spied, original)
-      @spied = spied
+    def initialize(blueprint)
+      original =
+        case blueprint.type
+        when :dynamic_delegation
+          FakeMethod.new(blueprint.msg) { |*args, &block| blueprint.target.method_missing(blueprint.msg, *args, &block) }
+        when :instance_method
+          blueprint.target.instance_method(blueprint.msg)
+        else
+          blueprint.target.method(blueprint.msg)
+        end
+
+      @spied = blueprint.target
       @original = original
-      @visibility = DetermineVisibility.call(@original)
       @conditional_filters = []
       @before_callbacks = []
       @after_callbacks = []
       @around_procs = []
       @call_history = []
-      @strategy = Strategy.factory_build(self)
+      @strategy = choose_strategy(blueprint)
       @instead = nil
     end
 
@@ -71,6 +81,18 @@ module Spy
 
     def instead(&block)
       @instead = block
+    end
+
+    private
+
+    def choose_strategy(blueprint)
+      if blueprint.type == :dynamic_delegation
+        Strategy::Intercept.new(self)
+      elsif @original.owner == @spied || @original.owner == @spied.singleton_class
+        Strategy::Wrap.new(self)
+      else
+        Strategy::Intercept.new(self)
+      end
     end
   end
 end
