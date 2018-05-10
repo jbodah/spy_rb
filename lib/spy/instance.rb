@@ -80,6 +80,7 @@ module Spy
 
     def instead(&block)
       @internal[:instead] = block
+      self
     end
 
     private
