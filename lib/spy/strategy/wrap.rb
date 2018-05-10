@@ -1,4 +1,5 @@
 require 'spy/determine_visibility'
+require 'spy/strategy/base'
 
 module Spy
   module Strategy
@@ -16,7 +17,7 @@ module Spy
 
           # Replace the method with the spy
           define_method spy.original.name do |*args, &block|
-            spy.call(self, *args, &block)
+            Spy::Strategy::Base.call(spy, self, *args, &block)
           end
 
           # Make the visibility of the spy match the spied original

@@ -1,5 +1,4 @@
 require 'spy/fake_method'
-require 'spy/instance/api/internal'
 require 'spy/strategy/wrap'
 require 'spy/strategy/intercept'
 
@@ -9,8 +8,6 @@ require 'spy/strategy/intercept'
 # - Provides hooks for callbacks
 module Spy
   class Instance
-    include API::Internal
-
     attr_reader :original, :spied, :strategy, :call_history
 
     def initialize(blueprint)
@@ -24,15 +21,17 @@ module Spy
           blueprint.target.method(blueprint.msg)
         end
 
-      @spied = blueprint.target
       @original = original
-      @conditional_filters = []
-      @before_callbacks = []
-      @after_callbacks = []
-      @around_procs = []
-      @call_history = []
+      @spied = blueprint.target
       @strategy = choose_strategy(blueprint)
-      @instead = nil
+      @call_history = []
+
+      @internal = {}
+      @internal[:conditional_filters] = []
+      @internal[:before_callbacks] = []
+      @internal[:after_callbacks]= []
+      @internal[:around_procs] = []
+      @internal[:instead]= nil
     end
 
     def name
@@ -58,29 +57,29 @@ module Spy
     end
 
     def when(&block)
-      @conditional_filters << block
+      @internal[:conditional_filters] << block
       self
     end
 
     # Expect block to yield. Call the rest of the chain
     # when it does
     def wrap(&block)
-      @around_procs << block
+      @internal[:around_procs] << block
       self
     end
 
     def before(&block)
-      @before_callbacks << block
+      @internal[:before_callbacks] << block
       self
     end
 
     def after(&block)
-      @after_callbacks << block
+      @internal[:after_callbacks] << block
       self
     end
 
     def instead(&block)
-      @instead = block
+      @internal[:instead] = block
     end
 
     private
