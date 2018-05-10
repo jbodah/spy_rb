@@ -1,7 +1,7 @@
 module Spy
   module Errors
-    MethodNotSpiedError           = Class.new(StandardError)
-    AlreadySpiedError             = Class.new(StandardError)
-    UnableToEmptySpyRegistryError = Class.new(StandardError)
+    Error = Class.new(StandardError)
+    MethodNotSpiedError = Class.new(Spy::Errors::Error)
+    AlreadySpiedError = Class.new(Spy::Errors::Error)
   end
 end
