@@ -30,7 +30,9 @@ gem install spy_rb
 
 ## Usage
 
-[Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) defines the top-level interface for creating spies and for interacting with them on a global scale.
+### Spy::API
+
+[Spy::API](https://github.com/jbodah/spy_rb/blob/master/lib/spy/api.rb) defines the top-level interface for creating spies and for interacting with them globally.
 
 You can use it to create spies in a variety of ways. For these example we'll use the `Fruit` class because, seriously, who doesn't love fruit:
 
@@ -77,6 +79,7 @@ Spy.on(Object, :doesnt_exist)
 
 Spy.on(Fruit, :to_s)
 => #<Spy::Instance:0x007feb55affe18 @spied=Fruit, @original=#<Method: Class(Module)#to_s>, @visibility=:public, @conditional_filters=[], @before_callbacks=[], @after_callbacks=[], @around_procs=[], @call_history=[], @strategy=#<Spy::Instance::Strategy::Intercept:0x007feb55affc38 @spy=#<Spy::Instance:0x007feb55affe18 ...>, @intercept_target=#<Class:Fruit>>>
+
 Spy.on(Fruit, :to_s)
 #=> Spy::Errors::AlreadySpiedError: Spy::Errors::AlreadySpiedError
 ```
@@ -90,17 +93,19 @@ Spy.restore(Object, :to_s)
 
 # Restore instance method
 s = Spy.on_any_instance(Object, :to_s)
-Spy.restore(Object, :to_s, :instance)
+Spy.restore(Object, :to_s, :instance_method)
+
+# Restore method_missing-style delegation
+Spy.restore(Object, :message, :dynamic_delegation)
 
 # Global restore
 s = Spy.on(Object, :to_s)
 Spy.restore(:all)
 ```
 
-If using in the context of a test suite, you may want to patch a `Spy.restore(:all)` into your teardowns:
+If you're using spy_rb in the context of a test suite, you may want to patch a `Spy.restore(:all)` into your teardowns:
 
-Ex:
-```ruby
+```rb
 class ActiveSupport::TestCase
   teardown do
     Spy.restore(:all)
@@ -108,7 +113,10 @@ class ActiveSupport::TestCase
 end
 ```
 
-Once you've created a spy instance, then there are a variety of ways to interact with that spy. See [Spy::Instance](https://github.com/jbodah/spy_rb/tree/master/lib/spy/instance.rb) for the full list.
+### Spy::Instance
+
+Once you've created a spy instance, then there are a variety of ways to interact with that spy.
+See [Spy::Instance](https://github.com/jbodah/spy_rb/tree/master/lib/spy/instance.rb) for the full list of supported methods.
 
 `Spy::Instance#call_count` will tell you how many times the spied method was called:
 
@@ -118,12 +126,13 @@ spy = Spy.on(fruit, :eat)
 fruit.eat(:slowly)
 spy.call_count
 #=> 1
+
 fruit.eat(:quickly)
 spy.call_count
 #=> 2
 ```
 
-`Spy::Instance#when` lets you spy conditionally:
+`Spy::Instance#when` lets you specify conditions as to when the spy should track calls:
 
 ```rb
 fruit = Fruit.new
@@ -132,6 +141,7 @@ spy.when {|method_call| method_call.args.first == :quickly}
 fruit.eat(:slowly)
 spy.call_count
 #=> 0
+
 fruit.eat(:quickly)
 spy.call_count
 #=> 1
@@ -167,7 +177,17 @@ fruit.eat(:hungrily)
 #=> 0.000000   0.000000   0.000000 (  0.000039)
 ```
 
-`Spy::Instance#call_history` keeps track of all of your calls for you:
+`Spy::Instance#instead` lets you emulate mocking:
+
+```rb
+fruit = Fruit.new
+spy = Spy.on(fruit, :eat)
+spy.instead { puts "taking a nap" }
+fruit.eat(:hungrily)
+#=> taking a nap
+```
+
+`Spy::Instance#call_history` keeps track of all of your calls for you. It returns a list of `Spy::MethodCall` objects which give you even more rich features:
 
 ```rb
 fruit = Fruit.new
@@ -181,17 +201,22 @@ spy.call_history
 ]
 ```
 
-`Spy::MethodCall` has a bunch of useful methods like `#receiver`, `#args`, `#block`, `#name`, and `#result`. Right now `Spy::MethodCall` does not deep copy args or results, so be careful!
+### Spy::MethodCall
 
-`Spy::MethodCall` also has the experimental feature `#replay`:
+`Spy::MethodCall` has a bunch of useful attributes like `#receiver`, `#args`, `#caller`, `#block`, `#name`, and `#result`.
+Right now `Spy::MethodCall` does not deep copy args or results, so be careful!
+
+`Spy::MethodCall` also has the experimental feature `#replay` which can be used interactively for debugging:
 
 ```rb
 fruit = Fruit.new
 spy = Spy.on(fruit, :eat)
 fruit.eat(:quickly)
 #=> you take a bite quickly
+
 spy.call_history[0].replay
 #=> you take a bite quickly
+
 spy.call_count
 #=> 1
 ```
@@ -203,13 +228,17 @@ fruit = Fruit.new
 spy = Spy.on(fruit, :eat)
 fruit.eat(:quickly)
 #=> you take a bite quickly
+
 fruit.eat(:slowly)
 #=> you take a bite slowly
+
 spy.call_count
 #=> 2
+
 spy.replay_all
 #=> you take a bite quickly
 #=> you take a bite slowly
+
 spy.call_count
 #=> 2
 ```
@@ -219,9 +248,3 @@ spy.call_count
 ```sh
 rake full_deploy TO=0.2.1
 ```
-
-## TODO
-- spying on methods used by spies causes stack overflow
-- more tests around any_instance
-  - does restore actually work for on_any_instance??
-- clean up tests around when {}, call count, exclusive spying (e.g. one instance/including class and not the other)
