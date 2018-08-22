@@ -40,6 +40,14 @@ module Spy
       core.add_spy(Blueprint.new(target, msg, :instance_method))
     end
 
+    # Spies on all of the calls made to the given object, class, or module
+    #
+    # @param object - the thing to spy on
+    # @returns [Spy::Multi]
+    def on_object(object)
+      core.add_multi_spy(Blueprint.new(object, :all, :object))
+    end
+
     # Stops spying on the method and restores its original functionality
     #
     # @example stop spying on every spied message
