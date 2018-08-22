@@ -1,5 +1,6 @@
 require 'spy/instance'
 require 'spy/registry'
+require 'spy/multi'
 require 'spy/errors'
 
 module Spy
@@ -9,6 +10,8 @@ module Spy
   # Syntactic sugar (like `Spy.restore(object, msg)` vs `Spy.restore(:all)`)
   # should be handled in `Spy::API` and utilize `Spy::Core`
   class Core
+    UNSAFE_METHODS = [:object_id, :__send__, :__id__, :method, :singleton_class]
+
     def initialize
       @registry = Registry.new
     end
@@ -28,6 +31,18 @@ module Spy
       spy.start
     end
 
+    # Start spying on all of the given objects and methods
+    #
+    # @param [Spy::Blueprint] blueprint - data for building the spy
+    # @returns [Spy::Multi]
+    def add_multi_spy(multi_blueprint)
+      spies =
+        multi_blueprint.target.methods.reject(&method(:unsafe_method?)).map do |method_name|
+          add_spy(Blueprint.new(multi_blueprint.target, method_name, :method))
+        end
+      Multi.new(spies)
+    end
+
     # Stop spying on the given object and method
     #
     # @raises [Spy::Errors::MethodNotSpiedError] if the method is not already
@@ -40,6 +55,12 @@ module Spy
     # Stops spying on all objects and methods
     def remove_all_spies
       @registry.remove_all.each(&:stop)
+    end
+
+    private
+
+    def unsafe_method?(name)
+      UNSAFE_METHODS.include?(name)
     end
   end
 end
