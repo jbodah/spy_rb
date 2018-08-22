@@ -1,5 +1,7 @@
 module Spy
   class Multi
+    attr_reader :spies
+
     def initialize(spies)
       @spies = spies
     end

@@ -36,10 +36,13 @@ module Spy
     # @param [Spy::Blueprint] blueprint - data for building the spy
     # @returns [Spy::Multi]
     def add_multi_spy(multi_blueprint)
-      spies =
-        multi_blueprint.target.methods.reject(&method(:unsafe_method?)).map do |method_name|
-          add_spy(Blueprint.new(multi_blueprint.target, method_name, :method))
-        end
+      target = multi_blueprint.target
+      type = multi_blueprint.type
+      methods = target.public_send(type).reject(&method(:unsafe_method?))
+      spies = methods.map do |method_name|
+        singular_type = type.to_s.sub(/s$/, '').to_sym
+        add_spy(Blueprint.new(multi_blueprint.target, method_name, singular_type))
+      end
       Multi.new(spies)
     end
 

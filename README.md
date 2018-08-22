@@ -83,7 +83,7 @@ Spy.on(Fruit, :to_s)
 Spy.on(Fruit, :to_s)
 #=> Spy::Errors::AlreadySpiedError: Spy::Errors::AlreadySpiedError
 
-# Spy on all of the methods of an object
+# Spy on all of the methods of an object (also see Spy.on_class)
 s = Spy.on_object(fruit)
 fruit.to_s
 s.call_count
