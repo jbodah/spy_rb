@@ -12,20 +12,7 @@ module Spy
       end
 
       def decorate
-        if @spy.is_a?(Spy::Multi)
-          spies = @spy.spies
-        else
-          spies = [@spy]
-        end
-
-        spies.each do |spy|
-          spy.wrap do |method_call, &block|
-            record_args(method_call)
-            block.call
-            record_rv(method_call)
-          end
-        end
-
+        prepare_spy(@spy)
         self
       end
 
@@ -38,6 +25,18 @@ module Spy
       end
 
       private
+
+      def prepare_spy(spy)
+        if spy.is_a?(Spy::Multi)
+          spy.spies.each(&method(:prepare_spy))
+        else
+          spy.wrap do |method_call, &block|
+            record_args(method_call)
+            block.call
+            record_rv(method_call)
+          end
+        end
+      end
 
       def record_args(method_call)
         @type_info[method_call.name] ||= {}
