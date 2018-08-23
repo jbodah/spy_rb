@@ -13,5 +13,9 @@ module Spy
     def [](name)
       @spies.find { |spy| spy.name == name }
     end
+
+    def uncalled
+      @spies.select { |spy| spy.call_count == 0 }
+    end
   end
 end
