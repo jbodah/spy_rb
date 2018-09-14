@@ -57,7 +57,7 @@ module Spy
             proc { Spy::Strategy::Base._call_original(spy, receiver, *args, &block) },
             spy.original.name,
             receiver,
-            caller[7..-1],
+            caller.drop_while { |path| path =~ /lib\/spy\/strategy/ },
             *args,
             &block)
         end
