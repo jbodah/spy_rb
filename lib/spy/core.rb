@@ -24,7 +24,7 @@ module Spy
     #   being spied on
     def add_spy(blueprint)
       if prev = @registry.get(blueprint)
-        raise Errors::AlreadySpiedError.new("Already spied on here:\n\t#{prev[0].caller.join("\n\t")}")
+        raise Errors::AlreadySpiedError.new("Already spied on #{blueprint} here:\n\t#{prev[0].caller.join("\n\t")}")
       end
       spy = Instance.new(blueprint)
       @registry.insert(blueprint, spy)
