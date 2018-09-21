@@ -1,9 +1,10 @@
 module Spy
   class MethodCall
-    attr_reader :name, :receiver, :caller, :args, :block
+    attr_reader :spy, :name, :receiver, :caller, :args, :block
     attr_accessor :result
 
-    def initialize(replayer, name, receiver, method_caller, *args)
+    def initialize(spy, replayer, name, receiver, method_caller, *args)
+      @spy      = spy
       @replayer = replayer
       @name     = name
       @receiver = receiver

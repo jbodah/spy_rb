@@ -54,6 +54,7 @@ module Spy
 
         def _build_method_call(spy, receiver, *args, &block)
           Spy::MethodCall.new(
+            spy,
             proc { Spy::Strategy::Base._call_original(spy, receiver, *args, &block) },
             spy.original.name,
             receiver,

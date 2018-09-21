@@ -10,7 +10,7 @@ module Spy
   # Syntactic sugar (like `Spy.restore(object, msg)` vs `Spy.restore(:all)`)
   # should be handled in `Spy::API` and utilize `Spy::Core`
   class Core
-    UNSAFE_METHODS = [:object_id, :__send__, :__id__, :method, :singleton_class]
+    UNSAFE_METHODS = Class.methods + Class.instance_methods #[:object_id, :__send__, :__id__, :method, :singleton_class]
 
     def initialize
       @registry = Registry.new

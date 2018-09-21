@@ -39,18 +39,24 @@ module Spy
       end
 
       def record_args(method_call)
-        @type_info[method_call.name] ||= {}
-        @type_info[method_call.name][:args] ||= []
+        owner = method_call.spy.original.owner
+        name = method_call.name
+        @type_info[owner] ||= {}
+        @type_info[owner][name] ||= {}
+        @type_info[owner][name][:args] ||= []
         method_call.args.each.with_index do |arg, idx|
-          @type_info[method_call.name][:args][idx] ||= Set.new
-          @type_info[method_call.name][:args][idx] << type_of(arg)
+          @type_info[owner][name][:args][idx] ||= Set.new
+          @type_info[owner][name][:args][idx] << type_of(arg)
         end
       end
 
       def record_rv(method_call)
-        @type_info[method_call.name] ||= {}
-        @type_info[method_call.name][:return_value] ||= Set.new
-        @type_info[method_call.name][:return_value] << type_of(method_call.result)
+        owner = method_call.spy.original.owner
+        name = method_call.name
+        @type_info[owner] ||= {}
+        @type_info[owner][name] ||= {}
+        @type_info[owner][name][:return_value] ||= Set.new
+        @type_info[owner][name][:return_value] << type_of(method_call.result)
       end
 
       def type_of(obj)
