@@ -9,7 +9,7 @@ module Spy
       @receiver = receiver
       @args     = args
       @caller   = method_caller
-      @block    = proc { receiver.instance_eval(&Proc.new) } if block_given?
+      @block    = Proc.new if block_given?
     end
 
     def replay
