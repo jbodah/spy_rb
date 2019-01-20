@@ -83,6 +83,10 @@ module Spy
       self
     end
 
+    def called?
+      @call_history.any?
+    end
+
     private
 
     def choose_strategy(blueprint)
