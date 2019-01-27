@@ -15,5 +15,7 @@ module Spy
     def replay
       @replayer.call
     end
+
+    alias call_original replay
   end
 end
