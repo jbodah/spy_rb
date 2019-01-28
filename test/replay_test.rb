@@ -76,5 +76,14 @@ class ReplayTest < Minitest::Spec
       spy.call_history[0].replay
       assert_equal 2, sum
     end
+
+    it 'is an alias of Spy::MethodCall#call_original' do
+      spy = Spy.on_any_instance(String, :<<)
+      str = ''
+      str << 'a'
+      assert(spy.call_history[0].method(:replay) ==
+             spy.call_history[0].method(:call_original),
+             'Spy::MethodCall#replay is not an alias of Spy::MethodCall#call_original')
+    end
   end
 end
