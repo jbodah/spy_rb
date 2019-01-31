@@ -1,4 +1,4 @@
-require 'test_helper.rb'
+require 'test_helper'
 
 class CalledTest < Minitest::Spec
   describe 'Spy::Instance#called?' do
