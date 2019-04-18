@@ -103,16 +103,17 @@ module Spy
       run_before_callbacks(method_call)
 
       result = nil
-      runner = proc do
-        @call_history << method_call
-        result = method_call.call_original(true)
-      end
-
-      if @internal[:instead]
-        runner = proc do
-          result = @internal[:instead].call(method_call)
+      runner =
+        if @internal[:instead]
+          proc do
+            result = @internal[:instead].call(method_call)
+          end
+        else
+          proc do
+            @call_history << method_call
+            result = method_call.call_original(true)
+          end
         end
-      end
 
       if @internal[:around_procs].any?
         runner = @internal[:around_procs].reduce(runner) do |p, wrapper|
