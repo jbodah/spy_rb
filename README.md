@@ -185,7 +185,7 @@ fruit.eat(:hungrily)
 #=> 0.000000   0.000000   0.000000 (  0.000039)
 ```
 
-`Spy::Instance#instead` lets you emulate mocking:
+`Spy::Instance#instead` lets you emulate stubbing:
 
 ```rb
 fruit = Fruit.new
