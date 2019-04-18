@@ -1,6 +1,6 @@
 module Spy
   class MethodCall
-    attr_reader :receiver, :backtrace, :args, :block, :result
+    attr_reader :receiver, :backtrace, :args, :block, :result, :spy
 
     def initialize(spy, receiver, args, block, backtrace)
       @spy = spy

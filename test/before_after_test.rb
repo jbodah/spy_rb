@@ -33,6 +33,17 @@ class BeforeAfterTest < Minitest::Spec
 
       assert yielded.is_a? Spy::MethodCall
     end
+
+    it 'has a ref to the spy instance' do
+      obj = []
+      spy = Spy.on(obj, :<<)
+
+      called = false
+      spy.after { |mc| called = true; assert mc.spy.call_count == 1 }
+
+      obj << 'hello'
+      assert called
+    end
   end
 
   describe 'Spy#after' do
