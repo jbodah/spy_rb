@@ -4,4 +4,4 @@ gemspec
 
 gem 'coveralls', require: false
 gem 'minitest-tagz', require: false
-gem 'pry', require: false
+gem 'pry-byebug', require: false

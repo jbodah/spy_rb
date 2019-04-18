@@ -1,5 +1,4 @@
-require 'spy/determine_visibility'
-require 'spy/strategy/base'
+require 'spy/replace_method'
 
 module Spy
   module Strategy
@@ -18,26 +17,11 @@ module Spy
       end
 
       def apply
-        spy = @spy
-        @target.class_eval do
-          # Add the spy to the intercept target
-          define_method spy.original.name do |*args, &block|
-            Spy::Strategy::Base.call(spy, self, *args, &block)
-          end
-
-          # Make the visibility of the spy match the spied original
-          unless spy.original.is_a?(FakeMethod)
-            visibility = DetermineVisibility.call(spy.original)
-            send(visibility, spy.original.name)
-          end
-        end
+        ReplaceMethod.call(@target, @spy, mode: :stub)
       end
 
       def undo
-        spy = @spy
-        @target.class_eval do
-          remove_method spy.original.name
-        end
+        ReplaceMethod.call(@target, @spy, remove_existing: true)
       end
     end
   end

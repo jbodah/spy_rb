@@ -8,4 +8,3 @@ Coveralls.wear!
 require 'minitest/pride'
 require 'minitest/autorun'
 require 'minitest/spec'
-require 'minitest/tagz/focus'

@@ -1,21 +1,26 @@
 module Spy
   class MethodCall
-    attr_reader :name, :receiver, :caller, :args, :block
-    attr_accessor :result
+    attr_reader :receiver, :backtrace, :args, :block, :result
 
-    def initialize(replayer, name, receiver, method_caller, *args)
-      @replayer = replayer
-      @name     = name
+    def initialize(spy, receiver, args, block, backtrace)
+      @spy = spy
       @receiver = receiver
-      @args     = args
-      @caller   = method_caller
-      @block    = Proc.new if block_given?
+      @args = args
+      @block = block
+      @backtrace = backtrace
     end
 
-    def replay
-      @replayer.call
+    def name
+      @spy.original.name
     end
 
-    alias call_original replay
+    def call_original(persist_result = false)
+      result = @spy.call_original(@receiver, @args, @block)
+      @result = result if persist_result
+      result
+    end
+
+    alias replay call_original
+    alias caller backtrace
   end
 end

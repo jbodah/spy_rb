@@ -87,7 +87,68 @@ module Spy
       @call_history.any?
     end
 
+    # @private
+    def call_original(*args)
+      if original.is_a?(UnboundMethod)
+        call_original_unbound_method(*args)
+      else
+        call_original_method(*args)
+      end
+    end
+
+    # @private
+    def apply(method_call)
+      return method_call.call_original unless passes_all_conditions?(method_call)
+
+      run_before_callbacks(method_call)
+
+      result = nil
+      runner =
+        if @internal[:instead]
+          proc do
+            result = @internal[:instead].call(method_call)
+          end
+        else
+          proc do
+            @call_history << method_call
+            result = method_call.call_original(true)
+          end
+        end
+
+      if @internal[:around_procs].any?
+        runner = @internal[:around_procs].reduce(runner) do |p, wrapper|
+          proc { wrapper[method_call, &p] }
+        end
+      end
+
+      runner.call
+
+      run_after_callbacks(method_call)
+
+      result
+    end
+
     private
+
+    def passes_all_conditions?(method_call)
+      @internal[:conditional_filters].all? { |f| f[method_call] }
+    end
+
+    def run_before_callbacks(method_call)
+      @internal[:before_callbacks].each { |f| f[method_call] }
+    end
+
+    def run_after_callbacks(method_call)
+      @internal[:after_callbacks].each { |f| f[method_call] }
+    end
+
+    def call_original_unbound_method(receiver, args, block)
+      original.bind(receiver).call(*args, &block)
+    end
+
+    def call_original_method(_receiver, args, block)
+      original.call(*args, &block)
+    end
 
     def choose_strategy(blueprint)
       if blueprint.type == :dynamic_delegation
