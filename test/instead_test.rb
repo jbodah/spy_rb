@@ -70,5 +70,14 @@ class InsteadTest < Minitest::Spec
       o.value = 1
       assert_equal 'lauren', o.name
     end
+
+    it 'records the call in call history' do
+      o = Object.new
+      spy = Spy.on(o, :to_s).instead { 'moo' }
+
+      o.to_s
+
+      assert spy.called?
+    end
   end
 end

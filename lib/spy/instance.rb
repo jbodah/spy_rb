@@ -106,6 +106,7 @@ module Spy
       runner =
         if @internal[:instead]
           proc do
+            @call_history << method_call
             result = @internal[:instead].call(method_call)
           end
         else
