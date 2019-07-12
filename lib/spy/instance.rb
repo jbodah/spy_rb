@@ -100,8 +100,6 @@ module Spy
     def apply(method_call)
       return method_call.call_original unless passes_all_conditions?(method_call)
 
-      run_before_callbacks(method_call)
-
       result = nil
       runner =
         if @internal[:instead]
@@ -121,6 +119,8 @@ module Spy
           proc { wrapper[method_call, &p] }
         end
       end
+
+      run_before_callbacks(method_call)
 
       runner.call
 
