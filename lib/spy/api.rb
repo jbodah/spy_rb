@@ -20,13 +20,14 @@ module Spy
     # @param [Object] target - the object you want to spy on
     # @param [Symbol] msg - the name of the method to spy on
     # @returns [Spy::Instance]
-    def on(target, msg)
-      if target.methods.include?(msg)
+    def on(target, msg, allow_private: false)
+      methods = allow_private ? (target.methods + target.private_methods) : target.public_methods
+      if methods.include?(msg)
         core.add_spy(Blueprint.new(target, msg, :method))
-      elsif target.respond_to?(msg)
+      elsif target.respond_to?(msg, allow_private)
         core.add_spy(Blueprint.new(target, msg, :dynamic_delegation))
       else
-        raise ArgumentError
+        raise ArgumentError, "Couldn't find method: #{msg.inspect}"
       end
     end
 
@@ -35,8 +36,10 @@ module Spy
     # @param target - class or module to spy on
     # @param msg - name of the method to spy on
     # @returns [Spy::Instance]
-    def on_any_instance(target, msg)
-      raise ArgumentError unless target.respond_to?(:instance_method)
+    def on_any_instance(target, msg, allow_private: false)
+      raise ArgumentError, "Not a Module/Class (?): #{target.inspect}" unless target.respond_to?(:instance_method)
+      methods = allow_private ? (target.instance_methods + target.private_instance_methods) : target.public_instance_methods
+      raise ArgumentError, "Couldn't find method: #{msg.inspect}" unless methods.include?(msg)
       core.add_spy(Blueprint.new(target, msg, :instance_method))
     end
 
