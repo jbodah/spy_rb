@@ -1,5 +1,6 @@
 require 'spy/core'
 require 'spy/blueprint'
+require 'set'
 
 module Spy
   # The core module that users will interface. `Spy::API` is implemented
@@ -54,6 +55,26 @@ module Spy
     # @returns [Spy::Multi]
     def on_class(klass)
       core.add_multi_spy(Blueprint.new(klass, :all, :instance_methods))
+    end
+
+    # Traverse a namespace and build up a Spy::Multi representing the entire
+    # namespace
+    def infect(klass)
+      blueprints = []
+      seen = Set.new
+      queue = [klass]
+      until queue.empty?
+        klass = queue.shift
+        blueprints += [
+          Blueprint.new(klass, :all, :instance_methods),
+          Blueprint.new(klass, :all, :methods)
+        ]
+        mods = klass.constants.map { |const| klass.const_get(const) }.select { |obj| obj.is_a?(Module) }
+        mods.reject! { |mod| seen.include?(mod) }
+        seen += mods
+        queue += mods
+      end
+      core.add_multi_spy(blueprints)
     end
 
     # Stops spying on the method and restores its original functionality
