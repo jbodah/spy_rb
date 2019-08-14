@@ -8,11 +8,11 @@ module Spy
       end
 
       def apply
-        ReplaceMethod.call(@spy.original.owner, @spy, mode: :stub)
+        ReplaceMethod.call(@spy.original.owner, @spy, mode: :stub, remove_existing: true)
       end
 
       def undo
-        ReplaceMethod.call(@spy.original.owner, @spy, mode: :restore)
+        ReplaceMethod.call(@spy.original.owner, @spy, mode: :restore, remove_existing: true)
       end
     end
   end
