@@ -10,7 +10,7 @@ module Spy
   # Syntactic sugar (like `Spy.restore(object, msg)` vs `Spy.restore(:all)`)
   # should be handled in `Spy::API` and utilize `Spy::Core`
   class Core
-    UNSAFE_METHODS = [:object_id, :__send__, :__id__, :method, :singleton_class]
+    UNSAFE_METHODS = Class.methods + Class.instance_methods #[:object_id, :__send__, :__id__, :method, :singleton_class]
 
     def initialize
       @registry = Registry.new
@@ -33,16 +33,26 @@ module Spy
 
     # Start spying on all of the given objects and methods
     #
-    # @param [Spy::Blueprint] blueprint - data for building the spy
+    # @param [Spy::Blueprint, Array<Spy::Blueprint>] blueprint - data for building the spy
     # @returns [Spy::Multi]
-    def add_multi_spy(multi_blueprint)
-      target = multi_blueprint.target
-      type = multi_blueprint.type
-      methods = target.public_send(type).reject(&method(:unsafe_method?))
-      spies = methods.map do |method_name|
-        singular_type = type.to_s.sub(/s$/, '').to_sym
-        add_spy(Blueprint.new(multi_blueprint.target, method_name, singular_type))
+    def add_multi_spy(blueprint)
+      if blueprint.is_a?(Array)
+        blueprints = blueprint
+      else
+        blueprints = [blueprint]
       end
+
+      spies = []
+      blueprints.each do |blueprint|
+        target = blueprint.target
+        type = blueprint.type
+        methods = target.public_send(type).reject(&method(:unsafe_method?))
+        spies += methods.map do |method_name|
+          singular_type = type.to_s.sub(/s$/, '').to_sym
+          add_spy(Blueprint.new(blueprint.target, method_name, singular_type))
+        end
+      end
+
       Multi.new(spies)
     end
 
